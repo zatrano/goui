@@ -1,0 +1,7 @@
+<div class="page">
+  <h1>{{ .Title }}</h1>
+  <p>Welcome, {{ .User.Name }}!</p>
+  @if(.User.IsAdmin)
+    <span class="badge">Admin</span>
+  @endif
+</div>

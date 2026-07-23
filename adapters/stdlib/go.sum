@@ -1,0 +1,6 @@
+github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aNNg=
+github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
+github.com/zatrano/goui v0.2.0 h1:bH32XX8jNWeZ5pnfcyUjTpqYAgYAba6TiuGtWMoxTVY=
+github.com/zatrano/goui v0.2.0/go.mod h1:4tpkI2j40rGZB9MaM360EEPm8VrmovHMPUeKyKXV1O4=
+golang.org/x/net v0.56.0 h1:Rw8j/hFzGvJUZwNBXnAtf5sVDVt+65SK2C7IxCxZt5o=
+golang.org/x/net v0.56.0/go.mod h1:D3Ku6r+V6JROoZK144D2XfMHFcMq/0zSfLelVTCFKec=

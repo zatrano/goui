@@ -1,0 +1,9 @@
+<form method="post" action="/contact">
+  {{-- contact form --}}
+  <label>Email</label>
+  <input type="email" name="email" value="{{ .Email }}" placeholder="user@example.com">
+  @if(.Errors.Email)
+    <span class="error">{!! .Errors.Email !!}</span>
+  @endif
+  <button type="submit">@@Send</button>
+</form>

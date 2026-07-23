@@ -1,0 +1,46 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoUI — Misc controls</title>
+  <link rel="stylesheet" href="/forms/style.css">
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 36rem;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      color: var(--color-goui-text);
+    }
+    h1 { font-size: 1.35rem; margin-bottom: 0.35rem; }
+    .lead { color: oklch(45% 0.02 250); margin-bottom: 1.25rem; font-size: 0.95rem; }
+    .demo-section { margin-bottom: 1.75rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--color-goui-border); }
+    .demo-section h2 { font-size: 1rem; margin: 0 0 0.65rem; }
+    .demo-section .goui-searchable { margin-bottom: 0.75rem; }
+    .hint { font-size: 0.875rem; color: oklch(45% 0.02 250); margin-top: 0.65rem; }
+    #status { margin-top: 1rem; font-size: 0.875rem; color: oklch(45% 0.02 250); }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="status">Connecting...</div>
+
+  <script type="module">
+    import { GoUIClient } from '/client/goui.js';
+    import { enhanceSelectable } from '/client/modules/selectable.js';
+    import { enhanceSignature } from '/client/modules/signature.js';
+
+    enhanceSelectable(document);
+    enhanceSignature(document);
+
+    const status = document.getElementById('status');
+    const client = new GoUIClient('/goui/ws', 'misc', {
+      mount: '#app',
+      onConnect() { status.textContent = 'Connected'; },
+      onError(msg) { status.textContent = 'Error: ' + msg; },
+    });
+    client.connect();
+  </script>
+</body>
+</html>

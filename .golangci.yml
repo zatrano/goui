@@ -1,0 +1,52 @@
+version: "2"
+
+run:
+  tests: true
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - misspell
+    - revive
+    - gosec
+  settings:
+    staticcheck:
+      checks:
+        - all
+        - "-QF1001" # style: De Morgan
+        - "-QF1008" # style: embedded field selectors
+        - "-ST1000" # package comments
+        - "-ST1020" # exported function comment form
+        - "-ST1021" # exported type comment form
+        - "-ST1003" # naming
+        - "-ST1016" # methods on same type should have same receiver name
+    revive:
+      rules:
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: dot-imports
+        - name: error-return
+        - name: error-strings
+        - name: error-naming
+        - name: if-return
+        - name: increment-decrement
+        - name: var-declaration
+        - name: unreachable-code
+        - name: unused-parameter
+        - name: empty-block
+    gosec:
+      excludes:
+        - G304 # validated/app-controlled paths
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - errcheck
+          - gosec
+          - revive

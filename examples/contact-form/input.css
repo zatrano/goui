@@ -1,0 +1,15 @@
+/* Optional Tailwind v4 entry — build with:
+   npx @tailwindcss/cli@4 -i ./input.css -o ./output.css
+   (or download standalone CLI; no npm project required in GoUI core)
+*/
+
+@import "../../forms/style.css";
+
+@theme {
+  --color-goui-primary: oklch(55% 0.18 250);
+  --color-goui-border: oklch(85% 0.01 250);
+  --color-goui-error: oklch(55% 0.22 25);
+  --color-goui-text: oklch(20% 0.01 250);
+  --radius-goui: 0.375rem;
+  --spacing-goui-field: 0.75rem;
+}

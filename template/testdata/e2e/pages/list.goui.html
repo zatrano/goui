@@ -1,0 +1,13 @@
+<ul>
+@foreach(.Items as $item)
+  <li>
+  @if($item.Active)
+  active:{{ $item.Name }}
+  @else
+  idle:{{ $item.Name }}
+  @endif
+  </li>
+@empty
+  <li class="empty">none</li>
+@endforeach
+</ul>

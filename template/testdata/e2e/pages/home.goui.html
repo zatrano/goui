@@ -1,0 +1,16 @@
+@extends("layouts.app")
+
+@section("title", "Home")
+
+@section("content")
+<h1>{{ .Heading }}</h1>
+@include("partials.nav")
+@component("components.card", dict "Title" "unused")
+  @slot("header")
+  Card for {{ .Heading }}
+  @endslot
+  Body A
+@endcomponent
+@component("components.button", dict "Label" "Save")
+@endcomponent
+@endsection

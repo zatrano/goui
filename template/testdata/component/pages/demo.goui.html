@@ -1,0 +1,16 @@
+<h1>{{ .PageTitle }}</h1>
+
+@component("components.card", dict "unused" 1)
+  @slot("header")
+    Header: {{ .PageTitle }}
+  @endslot
+  First card body
+@endcomponent
+
+@component("components.card")
+  Second card — no header slot
+@endcomponent
+
+@component("components.nested", dict "OuterLabel" "NESTED")
+  nested-default
+@endcomponent

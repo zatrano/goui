@@ -1,0 +1,7 @@
+@props(Title string)
+<div class="card">
+  @if(.Slots.header)
+  <header>{{ .Slots.header }}</header>
+  @endif
+  <div class="body">{{ .DefaultSlot }}</div>
+</div>

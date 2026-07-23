@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoUI Counter Example</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 32rem; margin: 2rem auto; }
+    .counter { display: flex; align-items: center; gap: 1rem; }
+    .count { font-size: 2rem; min-width: 2ch; text-align: center; }
+    button { font-size: 1.25rem; width: 2.5rem; height: 2.5rem; cursor: pointer; }
+    #status { margin-top: 1rem; color: #555; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <h1>GoUI Counter</h1>
+  <p>Server-driven counter via WebSocket patches.</p>
+  <div id="app"></div>
+  <div id="status">Connecting...</div>
+
+  <script type="module">
+    import { GoUIClient } from '/client/goui.js';
+
+    const status = document.getElementById('status');
+    const client = new GoUIClient('/goui/ws', 'counter', {
+      mount: '#app',
+      locale: 'tr',
+      onConnect() {
+        status.textContent = 'Connected';
+      },
+      onPush(msg) {
+        status.textContent = `Push: ${msg.kind} — ${msg.text}`;
+      },
+      onError(msg) {
+        status.textContent = `Error: ${msg}`;
+      },
+    });
+
+    client.connect();
+  </script>
+</body>
+</html>

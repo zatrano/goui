@@ -1,0 +1,39 @@
+# Binaries / build
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+/bin/
+/dist/
+
+# Go
+vendor/
+coverage.out
+coverage.html
+/cover
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# GoUI uploads (LocalStore default)
+.goui-uploads/
+
+# Compiled CSS outputs (Tailwind optional builds)
+**/output.css
+examples/**/output.css
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log

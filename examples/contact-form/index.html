@@ -1,0 +1,51 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoUI Contact Form</title>
+  <link rel="stylesheet" href="/forms/style.css">
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 28rem; margin: 2rem auto; color: var(--color-goui-text); }
+    h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    .lede { color: oklch(45% 0.02 250); margin-bottom: 1.25rem; }
+    .field { margin-bottom: 0.75rem; }
+    .choice { display: flex; align-items: center; gap: 0.5rem; }
+    .actions { margin-top: 0.5rem; }
+    .result { margin-top: 1rem; padding: var(--spacing-goui-field); border: 1px solid var(--color-goui-border); border-radius: var(--radius-goui); background: var(--color-goui-surface); }
+    #status { margin-top: 1rem; font-size: 0.875rem; color: oklch(45% 0.02 250); }
+    .broadcast-hint { margin-top: 1.5rem; font-size: 0.85rem; color: oklch(45% 0.02 250); }
+    .broadcast-hint code { font-size: 0.8rem; }
+    .landing a { color: var(--color-goui-primary, #2563eb); }
+  </style>
+</head>
+<body>
+  <h1>GoUI</h1>
+  <p class="lede">Hover ile prefetch; tıklayınca activate (form render).</p>
+  <div id="app"></div>
+  <div id="status">Connecting...</div>
+  <p class="broadcast-hint">
+    Tüm sekmelere duyuru:
+    <code>GET /admin/broadcast?text=Merhaba&amp;kind=info</code>
+  </p>
+
+  <script type="module">
+    import { GoUIClient } from '/client/goui.js';
+    import { enhanceToast, showToast } from '/client/modules/toast.js';
+    import { enhancePrefetch } from '/client/modules/prefetch.js';
+
+    enhanceToast(document);
+
+    const status = document.getElementById('status');
+    const client = new GoUIClient('/goui/ws', 'landing', {
+      mount: '#app',
+      locale: 'tr',
+      onConnect() { status.textContent = 'Connected'; },
+      onError(msg) { status.textContent = 'Error: ' + msg; },
+      onPush(payload) { showToast(payload); },
+    });
+    enhancePrefetch(client, document);
+    client.connect();
+  </script>
+</body>
+</html>

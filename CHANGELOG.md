@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [1.1.1] — 2026-07-28
+
+### Fixed
+- Race in `PendingMounts` under `go test -race` (entry `mountErr`/`cancel`
+  sync; cleanup interval set before sweep goroutine).
+
 ## [1.1.0] — 2026-07-28
 
 ### Changed

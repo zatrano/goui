@@ -49,10 +49,40 @@ type pendingEntry struct {
 	name      string
 	locale    string
 	ready     chan struct{} // closed when Mount finishes
-	mountErr  error
 	expiresAt time.Time
 	taken     bool
-	cancel    context.CancelFunc // cancels Mount ctx on expire/discard; may be nil
+
+	mu       sync.Mutex
+	mountErr error
+	cancel   context.CancelFunc // cancels Mount ctx on expire/discard; may be nil
+}
+
+func (e *pendingEntry) finish(err error) {
+	e.mu.Lock()
+	e.mountErr = err
+	e.mu.Unlock()
+	close(e.ready)
+}
+
+func (e *pendingEntry) waitDone() error {
+	<-e.ready
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	return e.mountErr
+}
+
+func (e *pendingEntry) takeCancel() context.CancelFunc {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	fn := e.cancel
+	e.cancel = nil
+	return fn
+}
+
+func (e *pendingEntry) invokeCancel() {
+	if fn := e.takeCancel(); fn != nil {
+		fn()
+	}
 }
 
 // NewPendingMounts creates a store with the given TTL (DefaultPendingTTL when <= 0),
@@ -63,17 +93,24 @@ func NewPendingMounts(ttl time.Duration) *PendingMounts {
 
 // NewPendingMountsLimited is like NewPendingMounts with a custom capacity.
 func NewPendingMountsLimited(ttl time.Duration, maxPending int) *PendingMounts {
+	return newPendingMounts(ttl, maxPending, pendingCleanupInterval)
+}
+
+func newPendingMounts(ttl time.Duration, maxPending int, cleanupInterval time.Duration) *PendingMounts {
 	if ttl <= 0 {
 		ttl = DefaultPendingTTL
 	}
 	if maxPending <= 0 {
 		maxPending = DefaultMaxPending
 	}
+	if cleanupInterval <= 0 {
+		cleanupInterval = pendingCleanupInterval
+	}
 	p := &PendingMounts{
 		items:           make(map[string]*pendingEntry),
 		ttl:             ttl,
 		maxPending:      maxPending,
-		cleanupInterval: pendingCleanupInterval,
+		cleanupInterval: cleanupInterval,
 		stopCleanup:     make(chan struct{}),
 		cleanupDone:     make(chan struct{}),
 	}
@@ -126,8 +163,7 @@ func (p *PendingMounts) Park(componentName, locale string, c core.Component, mou
 	p.parked.Add(1)
 	go func() {
 		err := <-mountDone
-		e.mountErr = err
-		close(e.ready)
+		e.finish(err)
 		if err != nil {
 			p.mu.Lock()
 			if cur, ok := p.items[token]; ok && cur == e && !cur.taken {
@@ -166,14 +202,17 @@ func (p *PendingMounts) Take(token string) (c core.Component, name, locale strin
 	p.mu.Unlock()
 
 	<-e.ready
-	if e.mountErr != nil {
-		if e.cancel != nil {
-			e.cancel()
+	e.mu.Lock()
+	mountErr := e.mountErr
+	cancel := e.cancel
+	e.cancel = nil // adopt or failed Take: do not double-cancel later
+	e.mu.Unlock()
+	if mountErr != nil {
+		if cancel != nil {
+			cancel()
 		}
-		return nil, "", "", e.mountErr
+		return nil, "", "", mountErr
 	}
-	// Adopted: drop cancel so session owns the lifetime (do not cancel Mount).
-	e.cancel = nil
 	p.adopted.Add(1)
 	return e.component, e.name, e.locale, nil
 }
@@ -278,11 +317,9 @@ func (p *PendingMounts) collectExpiredLocked(now time.Time) []*pendingEntry {
 }
 
 func discardPendingEntry(e *pendingEntry) {
-	if e.cancel != nil {
-		e.cancel()
-	}
-	<-e.ready
-	if e.mountErr == nil && e.component != nil {
+	e.invokeCancel()
+	err := e.waitDone()
+	if err == nil && e.component != nil {
 		_ = e.component.Unmount(context.Background())
 	}
 }

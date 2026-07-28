@@ -79,8 +79,7 @@ func TestPendingMounts_TakeAdoptsWithoutRemount(t *testing.T) {
 }
 
 func TestPendingMounts_TTLExpiresAndUnmounts(t *testing.T) {
-	store := NewPendingMounts(40 * time.Millisecond)
-	store.cleanupInterval = 15 * time.Millisecond
+	store := newPendingMounts(40*time.Millisecond, DefaultMaxPending, 15*time.Millisecond)
 	defer store.Stop()
 
 	var mounts, unmounts atomic.Int32
@@ -274,8 +273,7 @@ func TestPendingMounts_MaxPendingRejectsOverflow(t *testing.T) {
 }
 
 func TestPendingMounts_ParkLoadDoesNotAccumulateGoroutines(t *testing.T) {
-	store := NewPendingMountsLimited(30*time.Millisecond, 500)
-	store.cleanupInterval = 10 * time.Millisecond
+	store := newPendingMounts(30*time.Millisecond, 500, 10*time.Millisecond)
 	defer store.Stop()
 
 	runtime.GC()

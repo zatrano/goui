@@ -6,7 +6,7 @@ require (
 	github.com/gofiber/contrib/v3/websocket v1.2.1
 	github.com/gofiber/fiber/v3 v3.4.0
 	github.com/valyala/fasthttp v1.72.0
-	github.com/zatrano/goui/v2 v2.0.0
+	github.com/zatrano/goui v1.1.0
 )
 
 require (
@@ -28,4 +28,4 @@ require (
 	golang.org/x/text v0.38.0 // indirect
 )
 
-replace github.com/zatrano/goui/v2 => ../..
+replace github.com/zatrano/goui => ../..

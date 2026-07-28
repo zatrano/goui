@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/zatrano/goui/v2/i18n"
+	"github.com/zatrano/goui/i18n"
 )
 
 func TestBaseComponent_DirtyTracking(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/zatrano/goui/v2/core"
+	"github.com/zatrano/goui/core"
 )
 
 // Rating is an N-star (or custom icon) control; selection lives on the server.

@@ -27,7 +27,7 @@ The engine is a **structural preprocessor**:
 - Dot-path: `views/pages/home.goui.html` → `"pages.home"` (relative to `Root`)
 
 ```go
-import gouitemplate "github.com/zatrano/goui/v2/template"
+import gouitemplate "github.com/zatrano/goui/template"
 
 reg, err := gouitemplate.NewRegistry(gouitemplate.Config{
     Root:        "./views",

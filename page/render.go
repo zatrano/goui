@@ -11,10 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/zatrano/goui/v2/core"
-	"github.com/zatrano/goui/v2/diff"
-	"github.com/zatrano/goui/v2/i18n"
-	"github.com/zatrano/goui/v2/ws"
+	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/diff"
+	"github.com/zatrano/goui/i18n"
+	"github.com/zatrano/goui/ws"
 )
 
 // SSRComponentID is the placeholder data-goui-component value in SSR HTML.

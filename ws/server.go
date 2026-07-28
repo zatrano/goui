@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/zatrano/goui/v2/core"
-	"github.com/zatrano/goui/v2/i18n"
+	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/i18n"
 )
 
 // Path is the default WebSocket endpoint path.

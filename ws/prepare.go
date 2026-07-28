@@ -1,8 +1,8 @@
 package ws
 
 import (
-	"github.com/zatrano/goui/v2/core"
-	"github.com/zatrano/goui/v2/i18n"
+	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/i18n"
 )
 
 // PrepareComponent injects translator / BaseComponent ID+locale (same as a

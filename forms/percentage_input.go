@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/zatrano/goui/v2/core"
+	"github.com/zatrano/goui/core"
 )
 
 // PercentageInput stores percentage points (e.g. 45.5 means 45,5%).

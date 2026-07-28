@@ -106,7 +106,7 @@ bir kez native `html/template`’e derlenir (auto-escaping korunur).
 ## Kurulum
 
 ```bash
-go get github.com/zatrano/goui/v2@latest
+go get github.com/zatrano/goui@latest
 # bir adaptör seçin, örn.:
 go get github.com/zatrano/goui/adapters/stdlib@latest
 # veya: adapters/fiber | adapters/gin | adapters/echo
@@ -135,9 +135,9 @@ import (
 	"runtime"
 
 	gouistdlib "github.com/zatrano/goui/adapters/stdlib"
-	"github.com/zatrano/goui/v2/core"
-	"github.com/zatrano/goui/v2/i18n"
-	"github.com/zatrano/goui/v2/ws"
+	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/i18n"
+	"github.com/zatrano/goui/ws"
 )
 
 type Counter struct {

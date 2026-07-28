@@ -5,7 +5,7 @@ import (
 	"html"
 	"strings"
 
-	"github.com/zatrano/goui/v2/core"
+	"github.com/zatrano/goui/core"
 )
 
 // Option is a select option.

@@ -3,7 +3,7 @@ package core
 import (
 	"context"
 
-	"github.com/zatrano/goui/v2/i18n"
+	"github.com/zatrano/goui/i18n"
 )
 
 // Component is the core contract for all GoUI view components.

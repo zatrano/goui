@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/zatrano/goui/v2/page"
+	"github.com/zatrano/goui/page"
 )
 
 func TestSkeletonBlock(t *testing.T) {

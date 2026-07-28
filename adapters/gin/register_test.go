@@ -5,9 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	gouigin "github.com/zatrano/goui/adapters/gin"
-	"github.com/zatrano/goui/v2/core"
-	"github.com/zatrano/goui/v2/i18n"
-	"github.com/zatrano/goui/v2/ws"
+	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/i18n"
+	"github.com/zatrano/goui/ws"
 )
 
 func TestRegister_DoesNotPanic(_ *testing.T) {

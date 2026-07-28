@@ -1,4 +1,4 @@
-module github.com/zatrano/goui/v2
+module github.com/zatrano/goui
 
 go 1.25.12
 

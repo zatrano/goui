@@ -6,11 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/zatrano/goui/v2/core"
-	"github.com/zatrano/goui/v2/diff"
-	"github.com/zatrano/goui/v2/forms"
-	"github.com/zatrano/goui/v2/i18n"
-	"github.com/zatrano/goui/v2/validation"
+	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/diff"
+	"github.com/zatrano/goui/forms"
+	"github.com/zatrano/goui/i18n"
+	"github.com/zatrano/goui/validation"
 )
 
 // ContactForm composes Tier 1 form controls — mirrors examples/contact-form.

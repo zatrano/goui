@@ -1,11 +1,11 @@
 # 04 — Oturumlar, Hub, ve WebSocket Protokolü
 
-Bu sayfa, `ws` paketini (`github.com/zatrano/goui/v2/ws`) belgeler: `Session`/`Hub`
+Bu sayfa, `ws` paketini (`github.com/zatrano/goui/ws`) belgeler: `Session`/`Hub`
 yaşam döngüsü, tel (wire) frame formatı, ve bunu `ws.Server` ile bir framework
 adapter'ı aracılığıyla herhangi bir HTTP yığınına nasıl bağlayacağınız.
 
 ```go
-import "github.com/zatrano/goui/v2/ws"
+import "github.com/zatrano/goui/ws"
 ```
 
 ## 1. Genel bakışta mimari
@@ -251,10 +251,10 @@ import (
     "github.com/gofiber/fiber/v3/middleware/static"
 
     gouifiber "github.com/zatrano/goui/adapters/fiber"
-    "github.com/zatrano/goui/v2/core"
-    "github.com/zatrano/goui/v2/i18n"
-    "github.com/zatrano/goui/v2/upload"
-    "github.com/zatrano/goui/v2/ws"
+    "github.com/zatrano/goui/core"
+    "github.com/zatrano/goui/i18n"
+    "github.com/zatrano/goui/upload"
+    "github.com/zatrano/goui/ws"
 )
 
 func main() {

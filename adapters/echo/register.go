@@ -6,9 +6,9 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 
-	"github.com/zatrano/goui/v2/page"
-	"github.com/zatrano/goui/v2/upload"
-	"github.com/zatrano/goui/v2/ws"
+	"github.com/zatrano/goui/page"
+	"github.com/zatrano/goui/upload"
+	"github.com/zatrano/goui/ws"
 )
 
 // Options configures Echo registration.

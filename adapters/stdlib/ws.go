@@ -5,7 +5,7 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"github.com/zatrano/goui/v2/ws"
+	"github.com/zatrano/goui/ws"
 )
 
 // NewWSHandler upgrades HTTP requests to WebSocket and runs ws.Server.ServeConn.

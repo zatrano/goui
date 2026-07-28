@@ -9,12 +9,12 @@ Module path used throughout this document: `github.com/zatrano/goui`.
 
 ```go
 import (
-	"github.com/zatrano/goui/v2/core"
-	"github.com/zatrano/goui/v2/forms"
-	"github.com/zatrano/goui/v2/i18n"
-	"github.com/zatrano/goui/v2/upload"
-	"github.com/zatrano/goui/v2/validation"
-	"github.com/zatrano/goui/v2/ws"
+	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/forms"
+	"github.com/zatrano/goui/i18n"
+	"github.com/zatrano/goui/upload"
+	"github.com/zatrano/goui/validation"
+	"github.com/zatrano/goui/ws"
 )
 ```
 
@@ -133,10 +133,10 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/static"
 
 	gouifiber "github.com/zatrano/goui/adapters/fiber"
-	"github.com/zatrano/goui/v2/core"
-	"github.com/zatrano/goui/v2/i18n"
-	"github.com/zatrano/goui/v2/upload"
-	"github.com/zatrano/goui/v2/ws"
+	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/i18n"
+	"github.com/zatrano/goui/upload"
+	"github.com/zatrano/goui/ws"
 
 	"myapp/internal/httpapi" // your existing REST handlers, unrelated to GoUI
 )
@@ -245,7 +245,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/zatrano/goui/v2/core"
+	"github.com/zatrano/goui/core"
 )
 
 // DeptDashboard is scoped to exactly one department at construction time.
@@ -281,7 +281,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/zatrano/goui/v2/core"
+	"github.com/zatrano/goui/core"
 )
 
 // componentName builds the registry-name hand-off point described in §2.1.
@@ -594,10 +594,10 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/zatrano/goui/v2/core"
-	"github.com/zatrano/goui/v2/forms"
-	"github.com/zatrano/goui/v2/i18n"
-	"github.com/zatrano/goui/v2/validation"
+	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/forms"
+	"github.com/zatrano/goui/i18n"
+	"github.com/zatrano/goui/validation"
 )
 
 // RegistrationForm is a "become a 3CX reseller" application form:

@@ -5,7 +5,7 @@ import (
 	"html"
 	"strconv"
 
-	"github.com/zatrano/goui/v2/core"
+	"github.com/zatrano/goui/core"
 )
 
 // Textarea is a multi-line text control.

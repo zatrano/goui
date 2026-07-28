@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zatrano/goui/v2/core"
-	"github.com/zatrano/goui/v2/diff"
-	"github.com/zatrano/goui/v2/i18n"
+	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/diff"
+	"github.com/zatrano/goui/i18n"
 )
 
 type testComponent struct {

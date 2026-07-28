@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/zatrano/goui/v2/core"
+	"github.com/zatrano/goui/core"
 )
 
 // CodeEditor stores source text on the server; CodeMirror UI is client-side (CDN).

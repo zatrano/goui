@@ -52,7 +52,7 @@ func (l *Landing) Head() core.Head {
 ## Mount the page renderer
 
 ```go
-import "github.com/zatrano/goui/v2/page"
+import "github.com/zatrano/goui/page"
 
 renderer := page.NewRenderer(page.Options{
     Registry:   registry,

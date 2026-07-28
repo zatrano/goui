@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/zatrano/goui/v2/core"
+	"github.com/zatrano/goui/core"
 )
 
 // CurrencyInput stores a float64 amount; display formatting is server-side.

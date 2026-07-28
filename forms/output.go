@@ -4,7 +4,7 @@ import (
 	"context"
 	"html"
 
-	"github.com/zatrano/goui/v2/core"
+	"github.com/zatrano/goui/core"
 )
 
 // Output displays a calculation result.

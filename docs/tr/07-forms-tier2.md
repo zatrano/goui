@@ -4,10 +4,10 @@ Tier 2 kontrolleri, native HTML girdilerinin ötesine geçer: sunucu tarafı
 arama, ağaç/graf seçimi, zengin metin/kod/markdown düzenleme, önizlemeli
 dosya yüklemeleri, çizim pedleri ve daha fazlası. Select ailesi, telefon
 girdisi, veri güdümlü picker'lar, editörler, upload ve görsel kontroller
-dahil tamamı **`github.com/zatrano/goui/v2/forms`** paketinde yaşar.
+dahil tamamı **`github.com/zatrano/goui/forms`** paketinde yaşar.
 
 ```go
-import "github.com/zatrano/goui/v2/forms"
+import "github.com/zatrano/goui/forms"
 ```
 
 Aşağıdaki her alan `core.BaseComponent` + `forms.CommonAttrs` +

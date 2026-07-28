@@ -1,10 +1,10 @@
 # 05 — Forms Tier 1 (Native Controls)
 
 Tier 1 controls map directly onto native HTML form elements. They live in
-`github.com/zatrano/goui/v2/forms` and share two embedded helper types:
+`github.com/zatrano/goui/forms` and share two embedded helper types:
 
 ```go
-import "github.com/zatrano/goui/v2/forms"
+import "github.com/zatrano/goui/forms"
 ```
 
 - **`forms.CommonAttrs`** — the attributes almost every control accepts:
@@ -23,8 +23,8 @@ All examples below assume:
 
 ```go
 import (
-    "github.com/zatrano/goui/v2/core"
-    "github.com/zatrano/goui/v2/forms"
+    "github.com/zatrano/goui/core"
+    "github.com/zatrano/goui/forms"
 )
 ```
 

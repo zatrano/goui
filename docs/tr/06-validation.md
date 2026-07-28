@@ -2,17 +2,17 @@
 
 GoUI'nin doğrulaması, birlikte çalışan iki paketin içinde yaşar:
 
-- **`github.com/zatrano/goui/v2/validation`** — saf, durumsuz (stateless)
+- **`github.com/zatrano/goui/validation`** — saf, durumsuz (stateless)
   `Rule` fonksiyonları ve `Validate` çalıştırıcısı.
-- **`github.com/zatrano/goui/v2/forms`** — `FieldValidation` (her Tier
+- **`github.com/zatrano/goui/forms`** — `FieldValidation` (her Tier
   1/Tier 2 alanına gömülü) ve `ValidateAll`; bunlar kuralları render
   hattına bağlar (hata mesajları, `aria-invalid`, hata CSS sınıfı) ve
   başarısızlıkta gönderilen değerleri korur.
 
 ```go
 import (
-    "github.com/zatrano/goui/v2/forms"
-    "github.com/zatrano/goui/v2/validation"
+    "github.com/zatrano/goui/forms"
+    "github.com/zatrano/goui/validation"
 )
 ```
 
@@ -245,10 +245,10 @@ import (
     "context"
     "html"
 
-    "github.com/zatrano/goui/v2/core"
-    "github.com/zatrano/goui/v2/forms"
-    "github.com/zatrano/goui/v2/i18n"
-    "github.com/zatrano/goui/v2/validation"
+    "github.com/zatrano/goui/core"
+    "github.com/zatrano/goui/forms"
+    "github.com/zatrano/goui/i18n"
+    "github.com/zatrano/goui/validation"
 )
 
 type ContactForm struct {

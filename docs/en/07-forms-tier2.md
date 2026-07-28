@@ -3,11 +3,11 @@
 Tier 2 controls go beyond native HTML inputs: server-side search, tree/graph
 selection, rich text/code/markdown editing, file uploads with previews,
 drawing pads, and more. All controls live in
-**`github.com/zatrano/goui/forms`**, including the select family, phone
+**`github.com/zatrano/goui/v2/forms`**, including the select family, phone
 input, data-driven pickers, editors, uploads, and visual controls.
 
 ```go
-import "github.com/zatrano/goui/forms"
+import "github.com/zatrano/goui/v2/forms"
 ```
 
 Every field below embeds `core.BaseComponent` + `forms.CommonAttrs` +

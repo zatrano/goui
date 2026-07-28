@@ -2,7 +2,7 @@
   <img src="assets/goui-banner.png" alt="GoUI — Server-driven Go UI — WebSocket & SEO HTML">
 </p>
 
-**GoUI** is a Go server-driven UI framework. You write components in Go; the server owns state, renders HTML, and pushes minimal DOM patches over WebSocket — or serves full HTML on first paint with `ModeSEO` / `ModeStatic` for public pages. The browser runs a small vanilla JS runtime—no React/Vue bundle, no client-side component tree.
+**GoUI** is a Go server-driven UI framework. You write components in Go; the server owns state, renders HTML on first paint, and pushes minimal DOM patches over WebSocket for interactivity. Public pages can add SEO `Head` metadata (`ModeSEO`) or skip the socket entirely (`ModeStatic`). The browser runs a small vanilla JS runtime—no React/Vue bundle, no client-side component tree.
 
 Inspired by the LiveView idea (server-authoritative views over a persistent connection), GoUI is an independent implementation with a framework-agnostic core, HTTP adapters (net/http, Chi, Fiber, Gin, Echo), a keyed HTML diff engine, a progressive forms library, and a Blade-inspired `.goui.html` template engine on top of Go’s `html/template`.
 
@@ -17,7 +17,7 @@ Use GoUI when you want one language (Go) for domain logic and UI, keep form stat
 | HTMX | Progressive enhancement | Still mostly request/response; complex state is DIY |
 | **GoUI** | Go components, live WS patches, optional SEO/static HTML | Persistent WS per interactive session |
 
-**Prefer GoUI when:** internal tools, admin/ERP panels, multi-step forms, tenant apps where Go already owns the domain — and **public pages** when you opt into `ModeSEO` / `ModeStatic` (first paint is real HTML).
+**Prefer GoUI when:** internal tools, admin/ERP panels, multi-step forms, tenant apps where Go already owns the domain — and **any page** where first paint should be real HTML (default with the page renderer) plus live updates over WebSocket.
 
 **Prefer something else when:** offline-first mobile apps; millions of concurrent cheap page views where long-lived WebSockets are too expensive; teams that need a large client-component marketplace.
 
@@ -25,9 +25,10 @@ Use GoUI when you want one language (Go) for domain logic and UI, keep form stat
 
 ```
 Browser (goui.js)
+    │  GET → SSR HTML (page renderer)  then  WS connect / hydrate
     │  event / prefetch / activate
     ▼
-Session ──► Component.HandleEvent / Mount
+Session ──► Component.HandleEvent / Mount (adopt when parked)
     │
     ▼
 Render HTML ──► Diff (old tree → patches) ──► Frame(render)
@@ -36,8 +37,8 @@ Render HTML ──► Diff (old tree → patches) ──► Frame(render)
 Hub (sessions, grace reconnect, Broadcast)
 ```
 
-1. Client connects to `/goui/ws?component=…`
-2. Server creates a `Session`, mounts the component, sends `session` + initial `render` (`OpReplace`)
+1. With the page renderer, GET returns SSR HTML (LiveView-style dead render); WS adopts/hydrates
+2. Without it (hand-written shell), client connects to `/goui/ws?component=…` and receives the first `render`
 3. User events become `event` frames → `HandleEvent` → re-render → minimal patches
 4. Optional: `prefetch` mounts silently; `activate` promotes and renders
 5. Disconnects keep the session for a **grace period** (default 60s) so reconnect restores state
@@ -78,10 +79,12 @@ TextInput, NumericInput, DateTimeInput, ChoiceInput (checkbox/radio), FileInput,
 ### Prefetch
 `data-goui-prefetch` + `data-goui-activate`; silent Mount; LRU cap 5; no pre-render
 
-### Page modes (SEO)
-- `ModeLive` (default), `ModeSEO` (SSR HTML + WS hydrate), `ModeStatic` (HTML only)
+### Page modes
+- `ModeLive` (default): SSR first paint + WS hydrate/adopt (same first-paint idea as Vue SSR / LiveView)
+- `ModeSEO`: same interactive path + `HeadProvider` meta for crawlers / Open Graph
+- `ModeStatic`: HTML only, no WebSocket
+- Optional: `FastRenderTimeout`, `SkeletonHTML`, `DeferFirstRender` (empty shell opt-in), `BaseComponent.Refresh`
 - `Registry.RegisterPage`, `page.NewRenderer`, adapter `Routes` / `Page(...)`
-- `HeadProvider` for title / description / Open Graph
 - Guide: [docs/en/17-page-modes.md](docs/en/17-page-modes.md) · Example: [`examples/seo-pages`](examples/seo-pages)
 
 ## Template Engine (Blade-inspired)
@@ -104,7 +107,7 @@ once onto native `html/template` (auto-escaping preserved).
 ## Install
 
 ```bash
-go get github.com/zatrano/goui@latest
+go get github.com/zatrano/goui/v2@latest
 # pick an adapter, e.g.:
 go get github.com/zatrano/goui/adapters/stdlib@latest
 # or: adapters/fiber | adapters/gin | adapters/echo
@@ -133,9 +136,9 @@ import (
 	"runtime"
 
 	gouistdlib "github.com/zatrano/goui/adapters/stdlib"
-	"github.com/zatrano/goui/core"
-	"github.com/zatrano/goui/i18n"
-	"github.com/zatrano/goui/ws"
+	"github.com/zatrano/goui/v2/core"
+	"github.com/zatrano/goui/v2/i18n"
+	"github.com/zatrano/goui/v2/ws"
 )
 
 type Counter struct {

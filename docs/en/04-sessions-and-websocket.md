@@ -1,11 +1,11 @@
 # 04 — Sessions, Hub, and the WebSocket Protocol
 
-This page documents the `ws` package (`github.com/zatrano/goui/ws`): the
+This page documents the `ws` package (`github.com/zatrano/goui/v2/ws`): the
 `Session`/`Hub` lifecycle, the wire frame format, and how to wire it into any
 HTTP stack through `ws.Server` and a framework adapter.
 
 ```go
-import "github.com/zatrano/goui/ws"
+import "github.com/zatrano/goui/v2/ws"
 ```
 
 ## 1. Architecture at a glance
@@ -242,10 +242,10 @@ import (
     "github.com/gofiber/fiber/v3/middleware/static"
 
     gouifiber "github.com/zatrano/goui/adapters/fiber"
-    "github.com/zatrano/goui/core"
-    "github.com/zatrano/goui/i18n"
-    "github.com/zatrano/goui/upload"
-    "github.com/zatrano/goui/ws"
+    "github.com/zatrano/goui/v2/core"
+    "github.com/zatrano/goui/v2/i18n"
+    "github.com/zatrano/goui/v2/upload"
+    "github.com/zatrano/goui/v2/ws"
 )
 
 func main() {

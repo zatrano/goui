@@ -5,7 +5,7 @@ import (
 	"html"
 	"strings"
 
-	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/v2/core"
 )
 
 // MentionTextarea is a textarea that opens an @mention suggestion list (server-filtered).

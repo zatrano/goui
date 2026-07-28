@@ -3,7 +3,7 @@ package template
 import (
 	"fmt"
 
-	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/v2/core"
 )
 
 // RenderComponent renders c through the template registry when c implements

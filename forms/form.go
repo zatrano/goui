@@ -5,7 +5,7 @@ import (
 	"html"
 	"strings"
 
-	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/v2/core"
 )
 
 // Form is a container for form fields.

@@ -5,7 +5,7 @@ go 1.25.12
 require (
 	github.com/gin-gonic/gin v1.10.1
 	github.com/gorilla/websocket v1.5.3
-	github.com/zatrano/goui v1.0.0
+	github.com/zatrano/goui/v2 v2.0.0
 )
 
 require (
@@ -42,3 +42,5 @@ require (
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/zatrano/goui/v2 => ../..

@@ -25,6 +25,7 @@ export class GoUIClient {
 
     this.ws = null;
     this.sessionId = sessionStorage.getItem(SESSION_KEY) || '';
+    this.pendingId = opts.pending || '';
     this.componentRoots = new Map();
     this.reconnectAttempt = 0;
     this.reconnectTimer = null;
@@ -140,6 +141,9 @@ export class GoUIClient {
       url.searchParams.set('session', this.sessionId);
     } else {
       url.searchParams.set('component', this.componentName);
+      if (this.pendingId) {
+        url.searchParams.set('pending', this.pendingId);
+      }
     }
     if (this.locale) {
       url.searchParams.set('locale', this.locale);
@@ -194,6 +198,7 @@ export class GoUIClient {
     }
     this.sessionId = id;
     sessionStorage.setItem(SESSION_KEY, id);
+    this.pendingId = '';
   }
 
   _handleRender(componentId, payload) {

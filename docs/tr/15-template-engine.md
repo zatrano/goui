@@ -26,7 +26,7 @@ Motor bir **yapısal önişlemcidir**:
 - Dot-path: `views/pages/home.goui.html` → `"pages.home"` (`Root`’a göre)
 
 ```go
-import gouitemplate "github.com/zatrano/goui/template"
+import gouitemplate "github.com/zatrano/goui/v2/template"
 
 reg, err := gouitemplate.NewRegistry(gouitemplate.Config{
     Root:        "./views",

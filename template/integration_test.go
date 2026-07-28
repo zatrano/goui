@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/v2/core"
 )
 
 type plainComp struct {

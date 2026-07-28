@@ -253,7 +253,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/zatrano/goui/upload"
+	"github.com/zatrano/goui/v2/upload"
 )
 
 // S3Store, upload.Storage'ı bir S3-uyumlu bucket'a karşı uygular.

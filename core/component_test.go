@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/zatrano/goui/i18n"
+	"github.com/zatrano/goui/v2/i18n"
 )
 
 func TestBaseComponent_DirtyTracking(t *testing.T) {
@@ -126,4 +126,19 @@ func TestBaseComponent_ToastT(t *testing.T) {
 	if got != "[[missing.key]]" {
 		t.Fatalf("got %q", got)
 	}
+}
+
+func TestBaseComponent_Refresh_CallsRefresher(t *testing.T) {
+	bc := &BaseComponent{}
+	called := false
+	bc.SetRefresher(func() { called = true })
+	bc.Refresh()
+	if !called {
+		t.Fatal("expected Refresh to call refresher")
+	}
+}
+
+func TestBaseComponent_Refresh_NoRefresher_NoPanic(t *testing.T) {
+	bc := &BaseComponent{}
+	bc.Refresh()
 }

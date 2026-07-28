@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/v2/core"
 )
 
 type prefetchProbe struct {

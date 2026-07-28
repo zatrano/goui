@@ -4,7 +4,7 @@ import (
 	"html"
 	"strings"
 
-	"github.com/zatrano/goui/validation"
+	"github.com/zatrano/goui/v2/validation"
 )
 
 // Validatable is implemented by form fields that support server-side validation.

@@ -7,7 +7,7 @@ require (
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/gofiber/fiber/v3 v3.4.0
 	github.com/labstack/echo/v4 v4.13.4
-	github.com/zatrano/goui v1.0.0
+	github.com/zatrano/goui/v2 v2.0.0
 	github.com/zatrano/goui/adapters/echo v0.0.0
 	github.com/zatrano/goui/adapters/fiber v0.0.0
 	github.com/zatrano/goui/adapters/gin v0.0.0
@@ -63,7 +63,7 @@ require (
 )
 
 replace (
-	github.com/zatrano/goui => ../
+	github.com/zatrano/goui/v2 => ../
 	github.com/zatrano/goui/adapters/echo => ../adapters/echo
 	github.com/zatrano/goui/adapters/fiber => ../adapters/fiber
 	github.com/zatrano/goui/adapters/gin => ../adapters/gin

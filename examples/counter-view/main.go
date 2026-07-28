@@ -11,10 +11,10 @@ import (
 
 	gouifiber "github.com/zatrano/goui/adapters/fiber"
 
-	"github.com/zatrano/goui/core"
-	"github.com/zatrano/goui/i18n"
-	gouitemplate "github.com/zatrano/goui/template"
-	"github.com/zatrano/goui/ws"
+	"github.com/zatrano/goui/v2/core"
+	"github.com/zatrano/goui/v2/i18n"
+	gouitemplate "github.com/zatrano/goui/v2/template"
+	"github.com/zatrano/goui/v2/ws"
 )
 
 type Counter struct {

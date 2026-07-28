@@ -5,7 +5,7 @@ import (
 	"html"
 	"strings"
 
-	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/v2/core"
 )
 
 // SignaturePad captures a drawn signature; client uploads PNG then notifies via WS.

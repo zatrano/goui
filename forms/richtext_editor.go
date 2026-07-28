@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/v2/core"
 )
 
 // RichTextEditor stores HTML content on the server; Quill UI is client-side (CDN).

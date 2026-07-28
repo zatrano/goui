@@ -10,12 +10,12 @@ Bu belge boyunca kullanılan modül yolu: `github.com/zatrano/goui`.
 
 ```go
 import (
-	"github.com/zatrano/goui/core"
-	"github.com/zatrano/goui/forms"
-	"github.com/zatrano/goui/i18n"
-	"github.com/zatrano/goui/upload"
-	"github.com/zatrano/goui/validation"
-	"github.com/zatrano/goui/ws"
+	"github.com/zatrano/goui/v2/core"
+	"github.com/zatrano/goui/v2/forms"
+	"github.com/zatrano/goui/v2/i18n"
+	"github.com/zatrano/goui/v2/upload"
+	"github.com/zatrano/goui/v2/validation"
+	"github.com/zatrano/goui/v2/ws"
 )
 ```
 
@@ -137,10 +137,10 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/static"
 
 	gouifiber "github.com/zatrano/goui/adapters/fiber"
-	"github.com/zatrano/goui/core"
-	"github.com/zatrano/goui/i18n"
-	"github.com/zatrano/goui/upload"
-	"github.com/zatrano/goui/ws"
+	"github.com/zatrano/goui/v2/core"
+	"github.com/zatrano/goui/v2/i18n"
+	"github.com/zatrano/goui/v2/upload"
+	"github.com/zatrano/goui/v2/ws"
 
 	"myapp/internal/httpapi" // mevcut REST handler'larınız, GoUI'yle ilgisiz
 )
@@ -256,7 +256,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/v2/core"
 )
 
 // DeptDashboard, inşa zamanında tam olarak bir departmana kapsamlanmıştır.
@@ -293,7 +293,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/v2/core"
 )
 
 // componentName, §2.1'de açıklanan registry-ismi hand-off noktasını inşa eder.
@@ -619,10 +619,10 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/zatrano/goui/core"
-	"github.com/zatrano/goui/forms"
-	"github.com/zatrano/goui/i18n"
-	"github.com/zatrano/goui/validation"
+	"github.com/zatrano/goui/v2/core"
+	"github.com/zatrano/goui/v2/forms"
+	"github.com/zatrano/goui/v2/i18n"
+	"github.com/zatrano/goui/v2/validation"
 )
 
 // RegistrationForm bir "3CX bayisi olma" başvuru formudur:

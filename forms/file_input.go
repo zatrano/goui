@@ -3,7 +3,7 @@ package forms
 import (
 	"context"
 
-	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/v2/core"
 )
 
 // FileInput covers type=file.

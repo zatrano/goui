@@ -8,9 +8,9 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 
-	"github.com/zatrano/goui/page"
-	"github.com/zatrano/goui/upload"
-	"github.com/zatrano/goui/ws"
+	"github.com/zatrano/goui/v2/page"
+	"github.com/zatrano/goui/v2/upload"
+	"github.com/zatrano/goui/v2/ws"
 )
 
 // Options configures Fiber registration.
@@ -26,6 +26,9 @@ type Options struct {
 
 // Register mounts GoUI WebSocket, optional upload, and optional page routes.
 func Register(app *fiber.App, opts Options) {
+	if opts.Page != nil && opts.Server != nil {
+		opts.Page.UsePendingMounts(opts.Server.Pending)
+	}
 	if opts.Server != nil {
 		RegisterWS(app, opts.Server)
 	}
@@ -48,6 +51,7 @@ func RegisterWS(app *fiber.App, server *ws.Server) {
 			SessionID:     conn.Query("session"),
 			ComponentName: conn.Query("component"),
 			Locale:        conn.Query("locale"),
+			PendingID:     conn.Query("pending"),
 		})
 	}))
 }
@@ -68,8 +72,7 @@ func RegisterPages(app *fiber.App, renderer *page.Renderer, routes []page.Route)
 		if route.Path == "" || route.Component == "" {
 			continue
 		}
-		comp := route.Component
-		app.Get(route.Path, Page(renderer, comp))
+		app.Get(route.Path, adaptHTTP(renderer.HandlerRoute(route)))
 	}
 }
 

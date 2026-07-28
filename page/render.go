@@ -9,21 +9,42 @@ import (
 	"html/template"
 	"net/http"
 	"strings"
+	"time"
 
-	"github.com/zatrano/goui/core"
-	"github.com/zatrano/goui/diff"
-	"github.com/zatrano/goui/i18n"
-	"github.com/zatrano/goui/ws"
+	"github.com/zatrano/goui/v2/core"
+	"github.com/zatrano/goui/v2/diff"
+	"github.com/zatrano/goui/v2/i18n"
+	"github.com/zatrano/goui/v2/ws"
 )
 
 // SSRComponentID is the placeholder data-goui-component value in SSR HTML.
 // The client remaps it to the live session id on first WebSocket render.
 const SSRComponentID = "ssr"
 
+// ErrPendingRequired is returned when FastRenderTimeout is set but PendingMounts
+// is not wired (share the same store as ws.Server.Pending).
+var ErrPendingRequired = errors.New("page: FastRenderTimeout requires Options.PendingMounts (share ws.Server.Pending)")
+
 // Route binds an HTTP path to a registered component name.
 type Route struct {
 	Path      string
 	Component string
+
+	// FastRenderTimeout, when > 0, races Mount against the duration without
+	// cancelling Mount on miss. Success → SSR + park for WS adopt.
+	// Miss → SkeletonHTML/empty + park. Zero means wait for Mount (sync SSR).
+	// Requires PendingMounts.
+	FastRenderTimeout time.Duration
+
+	// SkeletonHTML fills #app when SSR body is missing (timeout miss, or
+	// DeferFirstRender). Ignored when SSR succeeds.
+	SkeletonHTML string
+
+	// DeferFirstRender (ModeLive only) skips HTTP SSR and returns an empty
+	// #app (or SkeletonHTML). Default false: first paint is synchronous —
+	// same idea as Vue SSR / LiveView dead render. Use only when Mount must
+	// not run on the GET (rare).
+	DeferFirstRender bool
 }
 
 // Options configures the page renderer.
@@ -41,6 +62,10 @@ type Options struct {
 	DefaultLocale string
 	// Styles optional stylesheet hrefs injected into <head>.
 	Styles []string
+
+	// PendingMounts parks SSR/fast-path Mounts for WebSocket adopt.
+	// Required when any route uses FastRenderTimeout. Share ws.Server.Pending.
+	PendingMounts *ws.PendingMounts
 }
 
 // Renderer turns registered components into full HTML documents.
@@ -68,11 +93,23 @@ func NewRenderer(opts Options) *Renderer {
 	return &Renderer{opts: opts}
 }
 
+// UsePendingMounts shares a PendingMounts store with ws.Server (SSR/fast-path adopt).
+func (r *Renderer) UsePendingMounts(p *ws.PendingMounts) {
+	if r == nil {
+		return
+	}
+	r.opts.PendingMounts = p
+}
+
 // Request describes one page render.
 type Request struct {
 	Component   string
 	Locale      string
 	HTTPRequest *http.Request
+
+	FastRenderTimeout time.Duration
+	SkeletonHTML      string
+	DeferFirstRender  bool
 }
 
 // Result is a rendered document.
@@ -80,6 +117,8 @@ type Result struct {
 	HTML string
 	Mode core.PageMode
 	Head core.Head
+	// PendingID is set when a Mount was parked for WS adopt (no remount).
+	PendingID string
 }
 
 // Render produces a full HTML document for the component's page mode.
@@ -108,60 +147,252 @@ func (r *Renderer) Render(ctx context.Context, req Request) (Result, error) {
 		ctx = core.ContextWithRequest(ctx, req.HTTPRequest)
 	}
 
+	if req.FastRenderTimeout > 0 && r.opts.PendingMounts == nil {
+		return Result{}, ErrPendingRequired
+	}
+
 	head := core.Head{Title: req.Component, Lang: locale}
 	var body string
+	var pendingID string
 
-	if mode == core.ModeSEO || mode == core.ModeStatic {
-		comp, err := r.opts.Registry.Create(req.Component)
+	switch mode {
+	case core.ModeStatic:
+		frag, extra, err := r.renderSyncSSR(ctx, req.Component, locale, false)
+		if err != nil {
+			return Result{}, err
+		}
+		body = frag
+		if extra != nil {
+			head = mergeHead(head, *extra, locale)
+		}
+
+	case core.ModeSEO:
+		var err error
+		body, pendingID, head, err = r.renderInteractive(ctx, req, locale, head, true)
 		if err != nil {
 			return Result{}, err
 		}
 
-		ws.PrepareComponent(comp, SSRComponentID, locale, r.opts.Translator)
-		if err := comp.Mount(ctx); err != nil {
-			return Result{}, err
-		}
-		defer func() { _ = comp.Unmount(ctx) }()
-
-		htmlFrag, err := comp.Render()
-		if err != nil {
-			return Result{}, err
-		}
-		htmlFrag, err = ws.DecorateHTML(htmlFrag, SSRComponentID)
-		if err != nil {
-			return Result{}, err
-		}
-		if mode == core.ModeSEO {
-			htmlFrag, err = markSSR(htmlFrag)
-			if err != nil {
-				return Result{}, err
+	case core.ModeLive:
+		if req.DeferFirstRender {
+			if req.SkeletonHTML != "" {
+				body = req.SkeletonHTML
 			}
+			break
 		}
-		body = htmlFrag
-
-		if hp, ok := comp.(core.HeadProvider); ok {
-			head = mergeHead(head, hp.Head(), locale)
+		var err error
+		body, pendingID, head, err = r.renderInteractive(ctx, req, locale, head, true)
+		if err != nil {
+			return Result{}, err
 		}
 	}
 
-	doc, err := r.buildDocument(req.Component, locale, mode, head, body)
+	doc, err := r.buildDocument(req.Component, locale, mode, head, body, pendingID)
 	if err != nil {
 		return Result{}, err
 	}
-	return Result{HTML: doc, Mode: mode, Head: head}, nil
+	return Result{HTML: doc, Mode: mode, Head: head, PendingID: pendingID}, nil
 }
 
-// Handler returns a net/http handler for one component page.
+// renderInteractive is shared by ModeLive and ModeSEO: sync SSR by default,
+// optional FastRenderTimeout race, park for WS adopt when PendingMounts is set.
+func (r *Renderer) renderInteractive(ctx context.Context, req Request, locale string, head core.Head, mark bool) (body string, pendingID string, outHead core.Head, err error) {
+	outHead = head
+	if req.FastRenderTimeout > 0 {
+		frag, extra, parkID, ok, terr := r.tryTimedSSR(ctx, req.Component, locale, req.FastRenderTimeout, mark)
+		if terr != nil {
+			return "", "", outHead, terr
+		}
+		if ok {
+			body = frag
+			pendingID = parkID
+			if extra != nil {
+				outHead = mergeHead(outHead, *extra, locale)
+			}
+		} else {
+			pendingID = parkID
+		}
+	} else {
+		frag, extra, parkID, perr := r.renderParkedSSR(ctx, req.Component, locale, mark)
+		if perr != nil {
+			return "", "", outHead, perr
+		}
+		body = frag
+		pendingID = parkID
+		if extra != nil {
+			outHead = mergeHead(outHead, *extra, locale)
+		}
+	}
+	if body == "" && req.SkeletonHTML != "" {
+		body = req.SkeletonHTML
+	}
+	return body, pendingID, outHead, nil
+}
+
+// renderSyncSSR Mount+Render then Unmount (ModeStatic — no WebSocket adopt).
+func (r *Renderer) renderSyncSSR(ctx context.Context, component, locale string, mark bool) (string, *core.Head, error) {
+	comp, err := r.opts.Registry.Create(component)
+	if err != nil {
+		return "", nil, err
+	}
+	ws.PrepareComponent(comp, SSRComponentID, locale, r.opts.Translator)
+	if err := comp.Mount(ctx); err != nil {
+		return "", nil, err
+	}
+	defer func() { _ = comp.Unmount(ctx) }()
+
+	htmlFrag, err := renderComponentFragment(comp, mark)
+	if err != nil {
+		return "", nil, err
+	}
+	var h *core.Head
+	if hp, ok := comp.(core.HeadProvider); ok {
+		hh := hp.Head()
+		h = &hh
+	}
+	return htmlFrag, h, nil
+}
+
+// renderParkedSSR Mount+Render and parks for WS adopt when PendingMounts is set.
+// Without PendingMounts, falls back to Unmount (legacy double-Mount on WS).
+func (r *Renderer) renderParkedSSR(ctx context.Context, component, locale string, mark bool) (body string, head *core.Head, pendingID string, err error) {
+	comp, err := r.opts.Registry.Create(component)
+	if err != nil {
+		return "", nil, "", err
+	}
+
+	mountCtx, cancel := context.WithCancel(context.WithoutCancel(ctx))
+	ws.PrepareComponent(comp, SSRComponentID, locale, r.opts.Translator)
+	if err := comp.Mount(mountCtx); err != nil {
+		cancel()
+		return "", nil, "", err
+	}
+
+	htmlFrag, err := renderComponentFragment(comp, mark)
+	if err != nil {
+		cancel()
+		_ = comp.Unmount(mountCtx)
+		return "", nil, "", err
+	}
+	var h *core.Head
+	if hp, ok := comp.(core.HeadProvider); ok {
+		hh := hp.Head()
+		h = &hh
+	}
+
+	if r.opts.PendingMounts != nil {
+		parkID := r.opts.PendingMounts.ParkReady(component, locale, comp, cancel)
+		if parkID == "" {
+			// At capacity — degrade to Unmount; WS will Mount fresh.
+			cancel()
+			_ = comp.Unmount(mountCtx)
+			return htmlFrag, h, "", nil
+		}
+		return htmlFrag, h, parkID, nil
+	}
+
+	cancel()
+	_ = comp.Unmount(mountCtx)
+	return htmlFrag, h, "", nil
+}
+
+// tryTimedSSR races Mount against timeout without cancelling Mount on miss.
+// On success parks the instance for WS adopt. On miss parks the in-flight Mount.
+func (r *Renderer) tryTimedSSR(ctx context.Context, component, locale string, timeout time.Duration, mark bool) (body string, head *core.Head, pendingID string, ok bool, err error) {
+	comp, err := r.opts.Registry.Create(component)
+	if err != nil {
+		return "", nil, "", false, err
+	}
+
+	mountCtx, cancel := context.WithCancel(context.WithoutCancel(ctx))
+	done := make(chan error, 1)
+	go func() {
+		ws.PrepareComponent(comp, SSRComponentID, locale, r.opts.Translator)
+		done <- comp.Mount(mountCtx)
+	}()
+
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+
+	select {
+	case mountErr := <-done:
+		if mountErr != nil {
+			cancel()
+			return "", nil, "", false, mountErr
+		}
+		htmlFrag, err := renderComponentFragment(comp, mark)
+		if err != nil {
+			cancel()
+			_ = comp.Unmount(mountCtx)
+			return "", nil, "", false, err
+		}
+		var h *core.Head
+		if hp, ok := comp.(core.HeadProvider); ok {
+			hh := hp.Head()
+			h = &hh
+		}
+		parkID := r.opts.PendingMounts.ParkReady(component, locale, comp, cancel)
+		if parkID == "" {
+			cancel()
+			_ = comp.Unmount(mountCtx)
+			return htmlFrag, h, "", true, nil
+		}
+		return htmlFrag, h, parkID, true, nil
+
+	case <-timer.C:
+		// Do not cancel — Mount keeps running until adopt or Pending TTL.
+		parkID := r.opts.PendingMounts.Park(component, locale, comp, done, cancel)
+		return "", nil, parkID, false, nil
+
+	case <-ctx.Done():
+		go func() {
+			cancel()
+			if err := <-done; err == nil {
+				_ = comp.Unmount(mountCtx)
+			}
+		}()
+		return "", nil, "", false, ctx.Err()
+	}
+}
+
+func renderComponentFragment(comp core.Component, mark bool) (string, error) {
+	htmlFrag, err := comp.Render()
+	if err != nil {
+		return "", err
+	}
+	htmlFrag, err = ws.DecorateHTML(htmlFrag, SSRComponentID)
+	if err != nil {
+		return "", err
+	}
+	if mark {
+		htmlFrag, err = markSSR(htmlFrag)
+		if err != nil {
+			return "", err
+		}
+	}
+	return htmlFrag, nil
+}
+
+// Handler returns a net/http handler for one component page (no FastRenderTimeout).
 func (r *Renderer) Handler(component string) http.Handler {
+	return r.HandlerRoute(Route{Component: component})
+}
+
+// HandlerRoute returns a net/http handler honouring Route.FastRenderTimeout
+// and Route.SkeletonHTML.
+func (r *Renderer) HandlerRoute(route Route) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		locale := req.URL.Query().Get("locale")
 		if locale == "" {
 			locale = r.opts.DefaultLocale
 		}
 		res, err := r.Render(req.Context(), Request{
-			Component:   component,
-			Locale:      locale,
-			HTTPRequest: req,
+			Component:         route.Component,
+			Locale:            locale,
+			HTTPRequest:       req,
+			FastRenderTimeout: route.FastRenderTimeout,
+			SkeletonHTML:      route.SkeletonHTML,
+			DeferFirstRender:  route.DeferFirstRender,
 		})
 		if err != nil {
 			if errors.Is(err, core.ErrComponentNotRegistered) {
@@ -247,9 +478,10 @@ type docData struct {
 	Component     string
 	Locale        string
 	Mount         string
+	PendingID     string
 }
 
-func (r *Renderer) buildDocument(component, locale string, mode core.PageMode, head core.Head, body string) (string, error) {
+func (r *Renderer) buildDocument(component, locale string, mode core.PageMode, head core.Head, body, pendingID string) (string, error) {
 	lang := head.Lang
 	if lang == "" {
 		lang = locale
@@ -278,6 +510,7 @@ func (r *Renderer) buildDocument(component, locale string, mode core.PageMode, h
 		Component:     component,
 		Locale:        locale,
 		Mount:         r.opts.MountSelector,
+		PendingID:     pendingID,
 	}
 
 	var buf bytes.Buffer
@@ -338,6 +571,9 @@ import { GoUIClient } from '{{jsstr .ClientScript}}';
 const client = new GoUIClient('{{jsstr .WSPath}}', '{{jsstr .Component}}', {
   mount: '{{jsstr .Mount}}',
   locale: '{{jsstr .Locale}}',
+{{- if .PendingID}}
+  pending: '{{jsstr .PendingID}}',
+{{- end}}
 });
 client.connect();
 </script>

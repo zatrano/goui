@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/v2/core"
 )
 
 // UploadedRef is server-side metadata after HTTP upload completes.

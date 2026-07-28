@@ -2,7 +2,7 @@ package forms
 
 import (
 	"context"
-	"github.com/zatrano/goui/validation"
+	"github.com/zatrano/goui/v2/validation"
 	"strings"
 	"testing"
 )

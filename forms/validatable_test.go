@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/zatrano/goui/i18n"
-	"github.com/zatrano/goui/validation"
+	"github.com/zatrano/goui/v2/i18n"
+	"github.com/zatrano/goui/v2/validation"
 )
 
 func loadTranslator(t *testing.T) *i18n.Translator {

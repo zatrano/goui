@@ -5,7 +5,7 @@ import (
 	"html"
 	"strings"
 
-	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/v2/core"
 )
 
 // DatalistOption is an option inside a datalist.

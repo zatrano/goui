@@ -1,11 +1,11 @@
 # 02 — Bileşenler, BaseComponent, Registry, Şablonlar
 
-Bu sayfa, `core` paketini (`github.com/zatrano/goui/core`) baştan sona
+Bu sayfa, `core` paketini (`github.com/zatrano/goui/v2/core`) baştan sona
 belgeler: `Component` sözleşmesi, her `BaseComponent` alanı ve metodu,
 `Registry`, ve HTML şablon önbelleği.
 
 ```go
-import "github.com/zatrano/goui/core"
+import "github.com/zatrano/goui/v2/core"
 ```
 
 ## 1. `Component` arayüzü

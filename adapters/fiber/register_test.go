@@ -5,9 +5,9 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	gouifiber "github.com/zatrano/goui/adapters/fiber"
-	"github.com/zatrano/goui/core"
-	"github.com/zatrano/goui/i18n"
-	"github.com/zatrano/goui/ws"
+	"github.com/zatrano/goui/v2/core"
+	"github.com/zatrano/goui/v2/i18n"
+	"github.com/zatrano/goui/v2/ws"
 )
 
 func TestRegister_DoesNotPanic(_ *testing.T) {

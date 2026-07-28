@@ -6,9 +6,9 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 
-	"github.com/zatrano/goui/page"
-	"github.com/zatrano/goui/upload"
-	"github.com/zatrano/goui/ws"
+	"github.com/zatrano/goui/v2/page"
+	"github.com/zatrano/goui/v2/upload"
+	"github.com/zatrano/goui/v2/ws"
 )
 
 // Options configures Echo registration.
@@ -23,6 +23,9 @@ type Options struct {
 
 // Register mounts GoUI WebSocket, optional upload, and optional page routes.
 func Register(e *echo.Echo, opts Options) {
+	if opts.Page != nil && opts.Server != nil {
+		opts.Page.UsePendingMounts(opts.Server.Pending)
+	}
 	if opts.Server != nil {
 		RegisterWS(e, opts.Server, opts.CheckOrigin)
 	}
@@ -51,6 +54,7 @@ func RegisterWS(e *echo.Echo, server *ws.Server, checkOrigin func(*http.Request)
 			SessionID:     q.Get("session"),
 			ComponentName: q.Get("component"),
 			Locale:        q.Get("locale"),
+			PendingID:     q.Get("pending"),
 		})
 		return nil
 	})
@@ -72,7 +76,7 @@ func RegisterPages(e *echo.Echo, renderer *page.Renderer, routes []page.Route) {
 		if route.Path == "" || route.Component == "" {
 			continue
 		}
-		e.GET(route.Path, echo.WrapHandler(renderer.Handler(route.Component)))
+		e.GET(route.Path, echo.WrapHandler(renderer.HandlerRoute(route)))
 	}
 }
 

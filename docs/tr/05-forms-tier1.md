@@ -1,11 +1,11 @@
 # 05 — Forms Tier 1 (Native Kontroller)
 
 Tier 1 kontrolleri, native HTML form elemanlarına doğrudan eşlenir.
-`github.com/zatrano/goui/forms` içinde yaşarlar ve iki gömülü yardımcı
+`github.com/zatrano/goui/v2/forms` içinde yaşarlar ve iki gömülü yardımcı
 türü paylaşırlar:
 
 ```go
-import "github.com/zatrano/goui/forms"
+import "github.com/zatrano/goui/v2/forms"
 ```
 
 - **`forms.CommonAttrs`** — neredeyse her kontrolün kabul ettiği
@@ -25,8 +25,8 @@ Aşağıdaki tüm örnekler şunu varsayar:
 
 ```go
 import (
-    "github.com/zatrano/goui/core"
-    "github.com/zatrano/goui/forms"
+    "github.com/zatrano/goui/v2/core"
+    "github.com/zatrano/goui/v2/forms"
 )
 ```
 

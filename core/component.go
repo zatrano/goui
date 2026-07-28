@@ -3,7 +3,7 @@ package core
 import (
 	"context"
 
-	"github.com/zatrano/goui/i18n"
+	"github.com/zatrano/goui/v2/i18n"
 )
 
 // Component is the core contract for all GoUI view components.
@@ -25,6 +25,7 @@ type BaseComponent struct {
 	Locale     string
 	translator *i18n.Translator
 	pusher     func(kind, text string)
+	refresher  func()
 }
 
 // MarkDirty marks the component as needing a re-render.
@@ -50,6 +51,20 @@ func (b *BaseComponent) SetTranslator(t *i18n.Translator) {
 // SetPusher injects a toast/push callback (usually bound to the WS session).
 func (b *BaseComponent) SetPusher(fn func(kind, text string)) {
 	b.pusher = fn
+}
+
+// SetRefresher injects a session re-render callback (async data → patch).
+func (b *BaseComponent) SetRefresher(fn func()) {
+	b.refresher = fn
+}
+
+// Refresh asks the live session to re-render this component (no-op if unset).
+// Use after background work that updates state outside HandleEvent — e.g.
+// Mount returns quickly with placeholders, then Refresh when data arrives.
+func (b *BaseComponent) Refresh() {
+	if b.refresher != nil {
+		b.refresher()
+	}
 }
 
 // Toast sends a push notification to the current session (no-op if no pusher).

@@ -5,9 +5,22 @@ route tanımı tek satır kalır.
 
 | Mod | İlk HTTP yanıtı | WebSocket | Tipik kullanım |
 |-----|-----------------|-----------|----------------|
-| `ModeLive` (varsayılan) | Boş `#app` kabuğu + istemci script | Evet | Admin, ERP, panel |
-| `ModeSEO` | Dolu HTML + `<head>` meta + istemci script | Evet (hydrate) | Landing, blog, ürün |
+| `ModeLive` (varsayılan) | **SSR HTML** + istemci (`DeferFirstRender` ile boş kabuk) | Evet (hydrate/adopt) | Admin, ERP, panel |
+| `ModeSEO` | SSR HTML + `<head>` meta + istemci | Evet (hydrate/adopt) | Landing, blog, ürün |
 | `ModeStatic` | Dolu HTML + meta, **istemci yok** | Hayır | Yasal, hakkında, düz içerik |
+
+## ModeLive “boş kabuk + WS” değildir
+
+Sunucu sahibi UI (Vue SSR, LiveView dead render, GoUI) demek **ilk boyama
+GET üzerinde senkron** demektir. WebSocket sonraki event/patch içindir; ilk
+HTML için değil.
+
+Page renderer kullanıldığında ModeLive ve ModeSEO aynı first-paint yolunu
+paylaşır. Asıl fark **Head / crawler meta** (`HeadProvider`); “async vs sync
+ilk render” değil.
+
+Boş `#app` + WS beklemek **opt-in** (`DeferFirstRender`) — başlangıç
+varsayılanı değil.
 
 ## Kayıt
 
@@ -18,11 +31,7 @@ registry.RegisterPage("landing", NewLanding, core.ModeSEO)
 registry.RegisterPage("privacy", NewPrivacy, core.ModeStatic)
 ```
 
-`Register` davranışı değişmedi; her zaman `ModeLive`.
-
 ## İsteğe bağlı Head meta
-
-SEO/Static bileşenlerde `core.HeadProvider` uygulayın:
 
 ```go
 func (l *Landing) Head() core.Head {
@@ -36,57 +45,69 @@ func (l *Landing) Head() core.Head {
 }
 ```
 
-## Page renderer bağlama
+## Page renderer
 
 ```go
-import "github.com/zatrano/goui/page"
-
-renderer := page.NewRenderer(page.Options{
-    Registry:   registry,
-    Translator: translator,
-})
-
 gouifiber.Register(app, gouifiber.Options{
     Server: server,
     Page:   renderer,
     Routes: []page.Route{
         {Path: "/", Component: "landing"},
-        {Path: "/about", Component: "privacy"},
         {Path: "/admin", Component: "orders"},
     },
 })
 ```
 
-Tek path:
+Adapter'lar `server.Pending` paylaşır → HTTP `Mount` WS'te **adopt** edilir
+(ikinci Mount yok).
+
+## İlk boyamayı ayarlama
 
 ```go
-app.Get("/product", gouifiber.Page(renderer, "product"))
-mux.Handle("/product", renderer.Handler("product"))
+Routes: []page.Route{
+    {
+        Path:              "/admin",
+        Component:         "orders",
+        FastRenderTimeout: 80 * time.Millisecond,
+        SkeletonHTML:      page.SkeletonRows("320px", 5),
+    },
+    {
+        Path:             "/legacy",
+        Component:        "legacy",
+        DeferFirstRender: true, // nadiren
+        SkeletonHTML:     page.SkeletonBlock("240px"),
+    },
+},
 ```
 
-## Mount içinde request
+| Alan | Varsayılan | Rol |
+|------|------------|-----|
+| (yok) | sync SSR | Vue/LiveView tarzı ilk boyama |
+| `FastRenderTimeout` | kapalı | Mount bekleme tavanı; kaçarsa iskelet + park |
+| `SkeletonHTML` | boş | Kaçış / defer için yer tutucu |
+| `DeferFirstRender` | false | Eski boş kabuk (opt-in) |
 
-SEO/Static handler `*http.Request`'i context'e koyar:
+### `Refresh`
 
 ```go
-func (p *Product) Mount(ctx context.Context) error {
-    req := core.RequestFromContext(ctx)
-    // req.URL.Query(), path, header…
+func (o *Orders) Mount(ctx context.Context) error {
+    go func() {
+        rows, err := o.load(ctx)
+        if err != nil { return }
+        o.Rows = rows
+        o.Refresh()
+    }()
     return nil
 }
 ```
 
-## ModeSEO hydrate
+## Trade-off'lar
 
-1. GET, `data-goui-component="ssr"` ve `data-goui-ssr="1"` ile HTML döner.
-2. `goui.js` WebSocket açar, ilk full render gelir.
-3. İstemci mevcut DOM'u **devralır** (flash yok), id'yi günceller; sonraki
-   patch'ler normal akar.
-
-`ModeLive` için elle `index.html` yazmaya devam edebilirsiniz; page renderer
-zorunlu değildir.
+- Varsayılan etkileşimli sayfalar ilk HTML için ekstra round-trip eklemez.
+- Yavaş Mount ya GET'i bekler ya timeout + iskelet.
+- WS gürültü değil; event kanalıdır.
+- Nested streaming yok; `Refresh` kullanın.
 
 ## Örnek
 
-[`examples/seo-pages`](../../examples/seo-pages): `/` (SEO), `/about` (Static),
-`/admin` (Live).
+[`examples/seo-pages`](../../examples/seo-pages).

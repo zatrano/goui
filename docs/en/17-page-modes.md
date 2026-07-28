@@ -5,9 +5,22 @@ registration time — routes stay one-liners.
 
 | Mode | First HTTP response | WebSocket | Typical use |
 |------|---------------------|-----------|-------------|
-| `ModeLive` (default) | Empty `#app` shell + client script | Yes | Admin, ERP, dashboards |
-| `ModeSEO` | Full HTML body + `<head>` meta + client script | Yes (hydrates) | Marketing, blog, product pages |
-| `ModeStatic` | Full HTML body + meta, **no** client script | No | Legal, about, pure content |
+| `ModeLive` (default) | **SSR HTML** + client (empty shell only if `DeferFirstRender`) | Yes (hydrate/adopt) | Admin, ERP, dashboards |
+| `ModeSEO` | SSR HTML + `<head>` meta + client | Yes (hydrate/adopt) | Marketing, blog, product pages |
+| `ModeStatic` | Full HTML + meta, **no** client script | No | Legal, about, pure content |
+
+## Why ModeLive is not “empty shell + WS”
+
+Server-owned UI (Vue SSR, LiveView dead render, GoUI) means the **first
+paint is synchronous on the GET**. The WebSocket is for later events and
+patches — not for the first HTML.
+
+ModeLive and ModeSEO share that first-paint path when you use the page
+renderer. The meaningful difference is **document Head / crawler metadata**
+(`HeadProvider`), not “async vs sync first render”.
+
+Empty `#app` + wait for WS is an **opt-in** escape hatch
+(`DeferFirstRender`) for rare cases — not the beginner default.
 
 ## Register
 
@@ -22,7 +35,7 @@ registry.RegisterPage("privacy", NewPrivacy, core.ModeStatic)
 
 ## Optional Head metadata
 
-Implement `core.HeadProvider` on SEO/Static components:
+Implement `core.HeadProvider` on SEO/Static components (also fine on Live):
 
 ```go
 func (l *Landing) Head() core.Head {
@@ -39,14 +52,13 @@ func (l *Landing) Head() core.Head {
 ## Mount the page renderer
 
 ```go
-import "github.com/zatrano/goui/page"
+import "github.com/zatrano/goui/v2/page"
 
 renderer := page.NewRenderer(page.Options{
     Registry:   registry,
     Translator: translator,
 })
 
-// Fiber (same idea for Gin / Echo / stdlib)
 gouifiber.Register(app, gouifiber.Options{
     Server: server,
     Page:   renderer,
@@ -58,37 +70,74 @@ gouifiber.Register(app, gouifiber.Options{
 })
 ```
 
-Or mount a single path:
+Adapters share `server.Pending` with the renderer so HTTP `Mount` is
+**adopted** by the WebSocket (no second `Mount`).
+
+## Tuning first paint
 
 ```go
-app.Get("/product", gouifiber.Page(renderer, "product"))
-// net/http:
-mux.Handle("/product", renderer.Handler("product"))
+Routes: []page.Route{
+    {
+        Path:              "/admin",
+        Component:         "orders",
+        FastRenderTimeout: 80 * time.Millisecond, // optional cap
+        SkeletonHTML:      page.SkeletonRows("320px", 5),
+    },
+    // Rare: skip SSR on purpose
+    {
+        Path:             "/legacy",
+        Component:        "legacy",
+        DeferFirstRender: true,
+        SkeletonHTML:     page.SkeletonBlock("240px"),
+    },
+},
 ```
 
-## Request access in Mount
+| Field | Default | Role |
+|-------|---------|------|
+| (none) | sync SSR | Vue/LiveView-style first paint |
+| `FastRenderTimeout` | off | Cap Mount wait; miss → skeleton + park |
+| `SkeletonHTML` | empty | Reserved layout on miss / defer |
+| `DeferFirstRender` | false | Opt-in empty shell (old ModeLive) |
 
-SEO/Static handlers put `*http.Request` on the context:
+`FastRenderTimeout` requires `PendingMounts` (`ErrPendingRequired`).
+
+### Async fill: `Refresh`
 
 ```go
-func (p *Product) Mount(ctx context.Context) error {
-    req := core.RequestFromContext(ctx)
-    // req.URL.Query(), path, headers…
+func (o *Orders) Mount(ctx context.Context) error {
+    go func() {
+        rows, err := o.load(ctx)
+        if err != nil { return }
+        o.Rows = rows
+        o.Refresh()
+    }()
     return nil
 }
 ```
 
-## How ModeSEO hydrates
+## Honest trade-offs
 
-1. GET returns HTML with `data-goui-component="ssr"` and `data-goui-ssr="1"`.
-2. `goui.js` opens the WebSocket and receives the first full render.
-3. The client **adopts** the existing DOM (no flash), remaps the component id,
-   then applies later patches as usual.
+- Default interactive pages **do not** add an extra round trip for first HTML.
+- Slow `Mount` either blocks the GET (default) or you set a timeout + skeleton.
+- WS is still required for interactivity; it is not “noise” — it is the event channel.
+- Nested progressive sub-component streaming is not built-in; use `Refresh`.
 
-`ModeLive` still works with a hand-written `index.html` if you prefer; the
-page renderer is optional.
+## Request access in Mount
+
+```go
+func (p *Product) Mount(ctx context.Context) error {
+    req := core.RequestFromContext(ctx)
+    return nil
+}
+```
+
+## Hydrate
+
+1. GET returns HTML with `data-goui-ssr="1"` (and `pending` when parked).
+2. Client adopts the DOM on first WS render (no flash).
+3. Later events apply diff patches.
 
 ## Example
 
-See [`examples/seo-pages`](../../examples/seo-pages): `/` (SEO), `/about` (Static),
-`/admin` (Live).
+See [`examples/seo-pages`](../../examples/seo-pages).

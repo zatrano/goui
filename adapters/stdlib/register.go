@@ -3,9 +3,9 @@ package stdlib
 import (
 	"net/http"
 
-	"github.com/zatrano/goui/page"
-	"github.com/zatrano/goui/upload"
-	"github.com/zatrano/goui/ws"
+	"github.com/zatrano/goui/v2/page"
+	"github.com/zatrano/goui/v2/upload"
+	"github.com/zatrano/goui/v2/ws"
 )
 
 // Options configures stdlib/Chi registration.
@@ -23,6 +23,9 @@ type Options struct {
 
 // Register mounts GoUI WebSocket, optional upload, and optional page routes on mux.
 func Register(mux *http.ServeMux, opts Options) {
+	if opts.Page != nil && opts.Server != nil {
+		opts.Page.UsePendingMounts(opts.Server.Pending)
+	}
 	if opts.Server != nil {
 		mux.Handle(ws.Path, NewWSHandler(opts.Server, opts.CheckOrigin))
 	}
@@ -39,6 +42,9 @@ type Router interface {
 
 // Mount registers WS/upload/pages on a generic router (e.g. chi.Mux).
 func Mount(r Router, opts Options) {
+	if opts.Page != nil && opts.Server != nil {
+		opts.Page.UsePendingMounts(opts.Server.Pending)
+	}
 	if opts.Server != nil {
 		r.Handle(ws.Path, NewWSHandler(opts.Server, opts.CheckOrigin))
 	}
@@ -63,6 +69,6 @@ func registerPages(r Router, renderer *page.Renderer, routes []page.Route) {
 		if route.Path == "" || route.Component == "" {
 			continue
 		}
-		r.Handle(route.Path, renderer.Handler(route.Component))
+		r.Handle(route.Path, renderer.HandlerRoute(route))
 	}
 }

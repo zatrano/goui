@@ -1,11 +1,11 @@
 # 02 — Components, BaseComponent, Registry, Templates
 
-This page documents the `core` package (`github.com/zatrano/goui/core`) in
+This page documents the `core` package (`github.com/zatrano/goui/v2/core`) in
 full: the `Component` contract, every `BaseComponent` field and method, the
 `Registry`, and the HTML template cache.
 
 ```go
-import "github.com/zatrano/goui/core"
+import "github.com/zatrano/goui/v2/core"
 ```
 
 ## 1. The `Component` interface

@@ -3,7 +3,7 @@ package fiber
 import (
 	"github.com/gofiber/contrib/v3/websocket"
 
-	"github.com/zatrano/goui/ws"
+	"github.com/zatrano/goui/v2/ws"
 )
 
 type fiberConn struct {

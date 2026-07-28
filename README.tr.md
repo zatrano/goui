@@ -2,7 +2,7 @@
   <img src="assets/goui-banner.png" alt="GoUI — Sunucu güdümlü Go UI — WebSocket ve SEO HTML">
 </p>
 
-**GoUI**, Go tabanlı sunucu-merkezli bir UI framework’üdür. Component’leri Go’da yazarsınız; durum sunucudadır, HTML sunucuda üretilir ve WebSocket üzerinden minimal DOM yamaları (patch) gönderilir — genel sayfalar için `ModeSEO` / `ModeStatic` ile ilk boyamada dolu HTML de sunulabilir. Tarayıcıda küçük bir vanilla JS runtime çalışır — React/Vue bundle’ı ve client tarafında component ağacı yoktur.
+**GoUI**, Go tabanlı sunucu-merkezli bir UI framework’üdür. Component’leri Go’da yazarsınız; durum sunucudadır, ilk boyamada HTML sunucuda üretilir ve etkileşim için WebSocket üzerinden minimal DOM yamaları gönderilir. Genel sayfalar `ModeSEO` ile Head meta ekleyebilir veya `ModeStatic` ile soketi kapatabilir. Tarayıcıda küçük bir vanilla JS runtime çalışır — React/Vue bundle’ı ve client tarafında component ağacı yoktur.
 
 LiveView fikrinden ilham alır (kalıcı bağlantı üzerinden sunucu-otoriteli görünümler); framework-bağımsız çekirdek, HTTP adaptörleri (net/http, Chi, Fiber, Gin, Echo), keyed HTML diff motoru, kademeli form kütüphanesi ve Go `html/template` üzerine Blade benzeri `.goui.html` template motoru ile bağımsız bir implementasyondur.
 
@@ -17,7 +17,7 @@ GoUI’yi, hem domain hem UI için tek dil (Go) istediğinizde, form state’ini
 | HTMX | Kademeli iyileştirme | Çoğunlukla istek/yanıt; karmaşık state sizde |
 | **GoUI** | Go component’ler, canlı WS patch, isteğe bağlı SEO/static HTML | Etkileşimli oturum başına kalıcı WS |
 
-**GoUI tercih edin:** iç araçlar, admin/ERP panelleri, çok adımlı formlar, domain’i zaten Go’da olan tenant uygulamaları — ve `ModeSEO` / `ModeStatic` ile **ilk boyaması gerçek HTML** olan genel sayfalar.
+**GoUI tercih edin:** iç araçlar, admin/ERP panelleri, çok adımlı formlar, domain’i zaten Go’da olan tenant uygulamaları — ve page renderer ile **ilk boyaması gerçek HTML** olan sayfalar (varsayılan) artı WebSocket ile canlı güncelleme.
 
 **Başka bir şey tercih edin:** offline-first mobil; uzun ömürlü WebSocket’in pahalı olduğu çok yüksek eşzamanlı ucuz sayfa trafiği; büyük client-component pazarına ihtiyaç duyan ekipler.
 
@@ -78,10 +78,12 @@ TextInput, NumericInput, DateTimeInput, ChoiceInput (checkbox/radio), FileInput,
 ### Prefetch
 `data-goui-prefetch` + `data-goui-activate`; sessiz Mount; LRU üst sınırı 5; önceden render yok
 
-### Sayfa modları (SEO)
-- `ModeLive` (varsayılan), `ModeSEO` (SSR HTML + WS hydrate), `ModeStatic` (yalnız HTML)
+### Sayfa modları
+- `ModeLive` (varsayılan): SSR ilk boyama + WS hydrate/adopt (Vue SSR / LiveView tarzı)
+- `ModeSEO`: aynı etkileşimli yol + crawler / Open Graph için `HeadProvider`
+- `ModeStatic`: yalnızca HTML, WebSocket yok
+- İsteğe bağlı: `FastRenderTimeout`, `SkeletonHTML`, `DeferFirstRender` (boş kabuk opt-in), `Refresh`
 - `Registry.RegisterPage`, `page.NewRenderer`, adapter `Routes` / `Page(...)`
-- Title / description / Open Graph için `HeadProvider`
 - Kılavuz: [docs/tr/17-page-modes.md](docs/tr/17-page-modes.md) · Örnek: [`examples/seo-pages`](examples/seo-pages)
 
 ## Template motoru (Blade benzeri)
@@ -104,7 +106,7 @@ bir kez native `html/template`’e derlenir (auto-escaping korunur).
 ## Kurulum
 
 ```bash
-go get github.com/zatrano/goui@latest
+go get github.com/zatrano/goui/v2@latest
 # bir adaptör seçin, örn.:
 go get github.com/zatrano/goui/adapters/stdlib@latest
 # veya: adapters/fiber | adapters/gin | adapters/echo
@@ -133,9 +135,9 @@ import (
 	"runtime"
 
 	gouistdlib "github.com/zatrano/goui/adapters/stdlib"
-	"github.com/zatrano/goui/core"
-	"github.com/zatrano/goui/i18n"
-	"github.com/zatrano/goui/ws"
+	"github.com/zatrano/goui/v2/core"
+	"github.com/zatrano/goui/v2/i18n"
+	"github.com/zatrano/goui/v2/ws"
 )
 
 type Counter struct {

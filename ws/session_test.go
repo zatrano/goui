@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zatrano/goui/core"
-	"github.com/zatrano/goui/diff"
-	"github.com/zatrano/goui/i18n"
+	"github.com/zatrano/goui/v2/core"
+	"github.com/zatrano/goui/v2/diff"
+	"github.com/zatrano/goui/v2/i18n"
 )
 
 type testComponent struct {
@@ -341,4 +341,55 @@ func TestSession_SecondRenderIsMinimalPatch(t *testing.T) {
 
 	cancel()
 	<-done
+}
+
+func TestSession_Refresh_SendsRender(t *testing.T) {
+	tr := loadTestTranslator(t)
+	session := newSessionWithConn(newMockConn(), tr, "tr")
+
+	comp := &testComponent{renderVal: "<div>v1</div>"}
+	if err := session.MountComponent("c1", comp); err != nil {
+		t.Fatalf("MountComponent: %v", err)
+	}
+	session.SendInitialRenders()
+	select {
+	case <-session.outbound:
+	case <-time.After(time.Second):
+		t.Fatal("expected initial render")
+	}
+
+	comp.renderVal = "<div>v2</div>"
+	session.Refresh("c1")
+
+	select {
+	case frame := <-session.outbound:
+		if frame.Type != FrameTypeRender {
+			t.Fatalf("type = %q", frame.Type)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("expected refresh render")
+	}
+}
+
+func TestSession_BaseComponentRefresh_Wired(t *testing.T) {
+	tr := loadTestTranslator(t)
+	session := newSessionWithConn(newMockConn(), tr, "tr")
+	comp := &testComponent{renderVal: "<div>a</div>"}
+	if err := session.MountComponent("c1", comp); err != nil {
+		t.Fatal(err)
+	}
+	session.SendInitialRenders()
+	<-session.outbound
+
+	comp.renderVal = "<div>b</div>"
+	comp.Refresh()
+
+	select {
+	case frame := <-session.outbound:
+		if frame.Type != FrameTypeRender {
+			t.Fatalf("type = %q", frame.Type)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("BaseComponent.Refresh should trigger session render")
+	}
 }

@@ -2,17 +2,17 @@
 
 GoUI's validation lives in two packages that work together:
 
-- **`github.com/zatrano/goui/validation`** — pure, stateless `Rule` functions
+- **`github.com/zatrano/goui/v2/validation`** — pure, stateless `Rule` functions
   and the `Validate` runner.
-- **`github.com/zatrano/goui/forms`** — `FieldValidation` (embedded in every
+- **`github.com/zatrano/goui/v2/forms`** — `FieldValidation` (embedded in every
   Tier 1/Tier 2 field) and `ValidateAll`, which wire rules into the render
   pipeline (error messages, `aria-invalid`, error CSS class) and preserve
   submitted values on failure.
 
 ```go
 import (
-    "github.com/zatrano/goui/forms"
-    "github.com/zatrano/goui/validation"
+    "github.com/zatrano/goui/v2/forms"
+    "github.com/zatrano/goui/v2/validation"
 )
 ```
 
@@ -237,10 +237,10 @@ import (
     "context"
     "html"
 
-    "github.com/zatrano/goui/core"
-    "github.com/zatrano/goui/forms"
-    "github.com/zatrano/goui/i18n"
-    "github.com/zatrano/goui/validation"
+    "github.com/zatrano/goui/v2/core"
+    "github.com/zatrano/goui/v2/forms"
+    "github.com/zatrano/goui/v2/i18n"
+    "github.com/zatrano/goui/v2/validation"
 )
 
 type ContactForm struct {

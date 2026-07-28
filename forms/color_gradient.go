@@ -5,7 +5,7 @@ import (
 	"html"
 	"strings"
 
-	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/v2/core"
 )
 
 // SwatchColorPicker is an advanced palette + hex field (beyond native type=color).

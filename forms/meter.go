@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/v2/core"
 )
 
 // Meter represents a scalar measurement within a known range.

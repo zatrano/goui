@@ -4,6 +4,23 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [2.0.0] — 2026-07-28
+
+### Changed
+- **Module path** is now `github.com/zatrano/goui/v2` (Go major-version import).
+  Install with `go get github.com/zatrano/goui/v2@v2.0.0`.
+- **ModeLive first paint**: with the page renderer, default is SSR HTML + WS
+  hydrate/adopt (LiveView-style dead render), not an empty `#app` shell.
+  Empty shell is opt-in via `DeferFirstRender`.
+- ModeLive vs ModeSEO is primarily Head/crawler metadata, not async vs sync
+  first render. Docs + README updated accordingly.
+
+### Added
+- `FastRenderTimeout`, `SkeletonHTML`, `page.SkeletonBlock` / `SkeletonRows`
+- `PendingMounts` park/adopt (no double `Mount` on SSR → WS)
+- `BaseComponent.Refresh` / `Session.Refresh` for async fill after Mount
+- `PendingMounts.Stats()` (Parked / Adopted / Expired / Rejected)
+
 ## [1.0.0] — 2026-07-23
 
 ### Added

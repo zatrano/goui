@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/v2/core"
 )
 
 // DateRangePicker holds start/end dates (YYYY-MM-DD) on the server.

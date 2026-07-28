@@ -9,7 +9,7 @@ import (
 	"github.com/yuin/goldmark"
 	gmhtml "github.com/yuin/goldmark/renderer/html"
 
-	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/v2/core"
 )
 
 // MarkdownEditor is a textarea + server-rendered live preview (goldmark).

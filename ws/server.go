@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/zatrano/goui/core"
-	"github.com/zatrano/goui/i18n"
+	"github.com/zatrano/goui/v2/core"
+	"github.com/zatrano/goui/v2/i18n"
 )
 
 // Path is the default WebSocket endpoint path.
@@ -16,6 +16,8 @@ type ConnectParams struct {
 	SessionID     string
 	ComponentName string
 	Locale        string
+	// PendingID adopts a FastRenderTimeout Mount parked by the page renderer.
+	PendingID string
 }
 
 // Server owns hub/registry wiring for framework-agnostic WebSocket accepts.
@@ -23,6 +25,9 @@ type Server struct {
 	Hub        *Hub
 	Registry   *core.Registry
 	Translator *i18n.Translator
+	// Pending holds ModeLive Mounts waiting for WS adopt after FastRenderTimeout.
+	// NewServer initialises a default store; share the same pointer with page.Options.
+	Pending *PendingMounts
 }
 
 // NewServer builds a Server with the given dependencies.
@@ -31,6 +36,7 @@ func NewServer(hub *Hub, registry *core.Registry, translator *i18n.Translator) *
 		Hub:        hub,
 		Registry:   registry,
 		Translator: translator,
+		Pending:    NewPendingMounts(DefaultPendingTTL),
 	}
 }
 
@@ -64,24 +70,23 @@ func (s *Server) ServeConn(ctx context.Context, conn Conn, p ConnectParams) erro
 		session = existing
 		reconnect = true
 	} else {
-		if p.ComponentName == "" {
-			_ = writeErrorFrame(conn, ErrComponentRequired.Error())
-			_ = conn.Close()
-			return ErrComponentRequired
-		}
-
-		component, err := s.Registry.Create(p.ComponentName)
+		component, locale, adopted, err := s.resolveInitialComponent(p)
 		if err != nil {
 			_ = writeErrorFrame(conn, err.Error())
 			_ = conn.Close()
 			return err
 		}
+		if locale == "" {
+			locale = p.Locale
+		}
 
-		session = NewSession(conn, s.Translator, p.Locale)
+		session = NewSession(conn, s.Translator, locale)
 		session.SetRegistry(s.Registry)
 		componentID := newSessionID()
 
-		if err := session.MountComponent(componentID, component); err != nil {
+		if adopted {
+			session.AdoptComponent(componentID, component)
+		} else if err := session.MountComponent(componentID, component); err != nil {
 			_ = writeErrorFrame(conn, err.Error())
 			_ = conn.Close()
 			return err
@@ -102,6 +107,29 @@ func (s *Server) ServeConn(ctx context.Context, conn Conn, p ConnectParams) erro
 	defer cancel()
 	session.Run(runCtx)
 	return nil
+}
+
+func (s *Server) resolveInitialComponent(p ConnectParams) (c core.Component, locale string, adopted bool, err error) {
+	if p.PendingID != "" && s.Pending != nil {
+		comp, _, pendingLocale, takeErr := s.Pending.Take(p.PendingID)
+		if takeErr == nil {
+			locale = p.Locale
+			if locale == "" {
+				locale = pendingLocale
+			}
+			return comp, locale, true, nil
+		}
+		// Expired / unknown pending → fall through to a fresh Mount.
+	}
+
+	if p.ComponentName == "" {
+		return nil, "", false, ErrComponentRequired
+	}
+	comp, err := s.Registry.Create(p.ComponentName)
+	if err != nil {
+		return nil, "", false, err
+	}
+	return comp, p.Locale, false, nil
 }
 
 func writeErrorFrame(conn Conn, message string) error {

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/v2/core"
 )
 
 // SelectItem is one option in an advanced select list.

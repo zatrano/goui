@@ -6,9 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 
-	"github.com/zatrano/goui/page"
-	"github.com/zatrano/goui/upload"
-	"github.com/zatrano/goui/ws"
+	"github.com/zatrano/goui/v2/page"
+	"github.com/zatrano/goui/v2/upload"
+	"github.com/zatrano/goui/v2/ws"
 )
 
 // Options configures Gin registration.
@@ -23,6 +23,9 @@ type Options struct {
 
 // Register mounts GoUI WebSocket, optional upload, and optional page routes.
 func Register(r gin.IRoutes, opts Options) {
+	if opts.Page != nil && opts.Server != nil {
+		opts.Page.UsePendingMounts(opts.Server.Pending)
+	}
 	if opts.Server != nil {
 		RegisterWS(r, opts.Server, opts.CheckOrigin)
 	}
@@ -51,6 +54,7 @@ func RegisterWS(r gin.IRoutes, server *ws.Server, checkOrigin func(*http.Request
 			SessionID:     q.Get("session"),
 			ComponentName: q.Get("component"),
 			Locale:        q.Get("locale"),
+			PendingID:     q.Get("pending"),
 		})
 	})
 }
@@ -71,7 +75,7 @@ func RegisterPages(r gin.IRoutes, renderer *page.Renderer, routes []page.Route) 
 		if route.Path == "" || route.Component == "" {
 			continue
 		}
-		r.GET(route.Path, gin.WrapH(renderer.Handler(route.Component)))
+		r.GET(route.Path, gin.WrapH(renderer.HandlerRoute(route)))
 	}
 }
 

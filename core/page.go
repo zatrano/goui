@@ -4,11 +4,13 @@ package core
 type PageMode int
 
 const (
-	// ModeLive serves an empty mount shell and fills the UI over WebSocket
-	// (default). Prefer for admin panels and highly interactive tools.
+	// ModeLive is the default interactive mode: with the page renderer the
+	// first GET includes SSR HTML (LiveView-style dead render), then the
+	// WebSocket hydrates/adopts for events. Opt into DeferFirstRender only
+	// when you intentionally want an empty shell.
 	ModeLive PageMode = iota
-	// ModeSEO renders full HTML on the first GET for crawlers and first paint,
-	// then hydrates over WebSocket for interactivity.
+	// ModeSEO is interactive like ModeLive, plus document Head metadata for
+	// crawlers and social previews. First paint is also SSR over HTTP.
 	ModeSEO
 	// ModeStatic renders full HTML only — no WebSocket client is embedded.
 	ModeStatic

@@ -12,9 +12,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zatrano/goui/core"
-	"github.com/zatrano/goui/diff"
-	"github.com/zatrano/goui/i18n"
+	"github.com/zatrano/goui/v2/core"
+	"github.com/zatrano/goui/v2/diff"
+	"github.com/zatrano/goui/v2/i18n"
 )
 
 const outboundBufferSize = 32
@@ -79,6 +79,48 @@ func (s *Session) MountComponent(id string, c core.Component) error {
 	s.mu.Unlock()
 
 	return nil
+}
+
+// AdoptComponent stores an already-mounted component without calling Mount again.
+// Used when a FastRenderTimeout / SSR pending Mount is handed off to the live session.
+func (s *Session) AdoptComponent(id string, c core.Component) {
+	applySessionContext(c, id, s.Locale, s.translator)
+	s.injectPusher(c)
+	s.injectRefresher(c, id)
+
+	s.mu.Lock()
+	s.components[id] = c
+	s.mu.Unlock()
+}
+
+// Refresh re-renders one active component and pushes an incremental (or full)
+// patch to the client. Safe to call from background goroutines after Mount.
+func (s *Session) Refresh(componentID string) {
+	if componentID == "" {
+		return
+	}
+	s.mu.RLock()
+	c, ok := s.components[componentID]
+	s.mu.RUnlock()
+	if !ok {
+		return
+	}
+	s.sendRender(componentID, c)
+}
+
+// RefreshAll re-renders every active component in the session.
+func (s *Session) RefreshAll() {
+	s.mu.RLock()
+	ids := make([]string, 0, len(s.components))
+	comps := make(map[string]core.Component, len(s.components))
+	for id, c := range s.components {
+		ids = append(ids, id)
+		comps[id] = c
+	}
+	s.mu.RUnlock()
+	for _, id := range ids {
+		s.sendRender(id, comps[id])
+	}
 }
 
 // Prefetch creates and mounts a component by registry name without rendering.
@@ -156,6 +198,7 @@ func (s *Session) Activate(name string) (string, error) {
 	if fromPrefetch {
 		applySessionContext(c, id, s.Locale, s.translator)
 		s.injectPusher(c)
+		s.injectRefresher(c, id)
 	} else {
 		if registry == nil {
 			return "", core.ErrComponentNotRegistered
@@ -181,6 +224,7 @@ func (s *Session) Activate(name string) (string, error) {
 func (s *Session) prepareComponent(c core.Component, id string) error {
 	applySessionContext(c, id, s.Locale, s.translator)
 	s.injectPusher(c)
+	s.injectRefresher(c, id)
 	return c.Mount(context.Background())
 }
 
@@ -188,6 +232,15 @@ func (s *Session) injectPusher(c core.Component) {
 	if setter, ok := c.(interface{ SetPusher(func(kind, text string)) }); ok {
 		setter.SetPusher(func(kind, text string) {
 			s.EnqueuePush(PushMessage{Kind: kind, Text: text})
+		})
+	}
+}
+
+func (s *Session) injectRefresher(c core.Component, id string) {
+	if setter, ok := c.(interface{ SetRefresher(func()) }); ok {
+		cid := id
+		setter.SetRefresher(func() {
+			s.Refresh(cid)
 		})
 	}
 }
@@ -590,8 +643,11 @@ func applySessionContext(c core.Component, id, locale string, translator *i18n.T
 }
 
 func newSessionID() string {
-	buf := make([]byte, 16)
-	_, _ = rand.Read(buf)
+	buf := make([]byte, 16) // 128-bit token
+	if _, err := rand.Read(buf); err != nil {
+		// crypto/rand failure is unrecoverable for session/pending security.
+		panic("ws: crypto/rand.Read: " + err.Error())
+	}
 	return hex.EncodeToString(buf)
 }
 

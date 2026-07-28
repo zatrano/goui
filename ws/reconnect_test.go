@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zatrano/goui/diff"
+	"github.com/zatrano/goui/v2/diff"
 )
 
 func TestReconnect_WithinGracePeriod(t *testing.T) {

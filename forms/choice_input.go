@@ -4,7 +4,7 @@ import (
 	"context"
 	"html"
 
-	"github.com/zatrano/goui/core"
+	"github.com/zatrano/goui/v2/core"
 )
 
 // ChoiceInput covers type=checkbox|radio.

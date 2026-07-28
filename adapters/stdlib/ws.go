@@ -5,7 +5,7 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"github.com/zatrano/goui/ws"
+	"github.com/zatrano/goui/v2/ws"
 )
 
 // NewWSHandler upgrades HTTP requests to WebSocket and runs ws.Server.ServeConn.
@@ -29,6 +29,7 @@ func NewWSHandler(server *ws.Server, checkOrigin func(*http.Request) bool) http.
 			SessionID:     q.Get("session"),
 			ComponentName: q.Get("component"),
 			Locale:        q.Get("locale"),
+			PendingID:     q.Get("pending"),
 		})
 	})
 }

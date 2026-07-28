@@ -5,7 +5,7 @@ go 1.25.12
 require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/labstack/echo/v4 v4.13.4
-	github.com/zatrano/goui v1.0.0
+	github.com/zatrano/goui/v2 v2.0.0
 )
 
 require (
@@ -22,3 +22,5 @@ require (
 	golang.org/x/sys v0.46.0 // indirect
 	golang.org/x/text v0.38.0 // indirect
 )
+
+replace github.com/zatrano/goui/v2 => ../..
